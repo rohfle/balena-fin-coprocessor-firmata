@@ -1,4 +1,4 @@
-#ifndef __BALENA_H_INCLUDED__   // if x.h hasn't been included yet...
+#ifndef __BALENA_H_INCLUDED__
 #define __BALENA_H_INCLUDED__
 
 #include <platform/emlib/inc/em_cmu.h>
