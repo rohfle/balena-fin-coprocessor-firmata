@@ -18,14 +18,12 @@
 #include "Firmata.h"
 
 using namespace firmata;
-using namespace serial;
 
 //******************************************************************************
 //* Static Members
 //******************************************************************************
 // make one instance for the user to use
-FirmataClass Firmata;
-SerialClass Serial;
+serial::SerialClass Serial;
 
 /* callback functions */
 callbackFunction FirmataClass::currentAnalogCallback = (callbackFunction)NULL;
