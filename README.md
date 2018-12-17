@@ -1,6 +1,6 @@
 # BalenaFin Co-Processor Firmata (2.5.8)
 
-*Please note that in it's current state, this is not does not build due to a number of wrappers to be implemented*
+*Please note that in it's current state, this **does not build** due to a number of wrappers still to be implemented*
 
 This is an implementation of the Firmata firmware for SiliconLabs BGM111. It is compatible with Firmata 2.5.8.
 
