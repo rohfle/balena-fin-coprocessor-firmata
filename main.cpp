@@ -1,13 +1,13 @@
 #include "balena.h"
 #include "Firmata.h"
 
-using namespace firmata;
-
 int main(void)
 {
+	balena::BalenaClass Balena;
+	firmata::FirmataClass Firmata;
 
-initBalena();
-Firmata.begin();
+	Balena.init();
+	Firmata.begin(9600);
 
   while (1) {
 	  // Do Firmata things
