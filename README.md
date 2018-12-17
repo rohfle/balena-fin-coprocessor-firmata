@@ -1,4 +1,4 @@
-# BalenaFin Co-Processor Firmata (2.5.8)
+# BalenaFin Co-Processor Firmata
 
 *Please note that in it's current state, this **does not build** due to a number of wrappers still to be implemented*
 
@@ -14,3 +14,4 @@ This is an implementation of the Firmata firmware for SiliconLabs BGM111. It is 
 - [ ] Document Flashing/Firmware Modification Proceedure
 - [ ] Add support for BLE (what features?)
 - [ ] Adjust license to adhere to balena and firmata protocol
+
