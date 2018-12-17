@@ -1,6 +1,9 @@
 #include "balena.h"
 
-void initBalena()
+
+using namespace balena;
+
+void BalenaClass::init()
 {
 	initMcu();
 	initBoard();
