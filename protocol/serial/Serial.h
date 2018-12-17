@@ -1,11 +1,8 @@
-#include <platform/emlib/inc/em_cmu.h>
-#include <platform/emlib/inc/em_emu.h>
-//#include "init_mcu.h"
-//#include "init_board.h"
-//#include "init_app.h"
-//#include "board_features.h"
-//#include "hal-config.h"
+#ifndef SERIAL_H
+#define SERIAL_H
+
 #include "uartdrv.h"
+#include "uartdrv_config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,14 +16,27 @@ extern "C" {
   #include <stdint.h>
 #endif
 
-//typedef uint16_t size_t;
-
 #define EMDRV_UARTDRV_MAX_CONCURRENT_BUFS 6
-//DEFINE_BUF_QUEUE(EMDRV_UARTDRV_MAX_CONCURRENT_RX_BUFS, rxBufferQueue);
-//DEFINE_BUF_QUEUE(EMDRV_UARTDRV_MAX_CONCURRENT_TX_BUFS, txBufferQueue);
+#define CM3                                         \
+{                                                   \
+  USART0,                                           \
+  baud,                                             \
+  _USART_ROUTELOC0_TXLOC_LOC0,                      \
+  _USART_ROUTELOC0_RXLOC_LOC0,                      \
+  usartStopbits1,                                   \
+  usartNoParity,                                    \
+  usartOVS16,                                       \
+  false,                                            \
+  uartdrvFlowControlNone,							\
+  gpioPortA,                                        \
+  4,                                                \
+  gpioPortA,                                        \
+  5,                                                \
+  (UARTDRV_Buffer_FifoQueue_t *)&rxBufferQueue,     \
+  (UARTDRV_Buffer_FifoQueue_t *)&txBufferQueue,     \
+}
 
 namespace serial {
-
 class SerialClass{
 
 	UARTDRV_HandleData_t uarthandleData;
@@ -91,9 +101,9 @@ public:
 	void parseInt();
 
 };
-
 };
 
 #ifdef __cplusplus
 }
+#endif
 #endif

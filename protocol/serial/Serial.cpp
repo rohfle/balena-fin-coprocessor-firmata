@@ -7,26 +7,6 @@ using namespace serial;
 SerialClass Serial;
 
 void SerialClass::begin(unsigned long baud){
-	#define CM3                                         \
-	{                                                   \
-	  USART0,                                           \
-	  baud,                                             \
-	  _USART_ROUTELOC0_TXLOC_LOC0,                      \
-	  _USART_ROUTELOC0_RXLOC_LOC0,                      \
-	  usartStopbits1,                                   \
-	  usartNoParity,                                    \
-	  usartOVS16,                                       \
-	  false,                                            \
-	  uartdrvFlowControlNone,							\
-	  gpioPortA,                                        \
-	  4,                                                \
-	  gpioPortA,                                        \
-	  5,                                                \
-	  (UARTDRV_Buffer_FifoQueue_t *)&rxBufferQueue,     \
-	  (UARTDRV_Buffer_FifoQueue_t *)&txBufferQueue,     \
-	}
-
-    //Configuration for USART0 to CM3
     UARTDRV_Init_t uartInitData = CM3;
     UARTDRV_Init(uartHandle, &uartInitData);
 };
