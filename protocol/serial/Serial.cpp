@@ -1,18 +1,40 @@
 #include "Serial.h"
 
-//uint8_t buffer[64] = "test\r\n";
+SerialClass::SerialClass(unsigned int interface){
 
-using namespace serial;
+	baud = 115200;
+	GPIO_PinModeSet(BSP_VCOM_ENABLE_PORT, BSP_VCOM_ENABLE_PIN, gpioModePushPull, 1);
+	if(interface == VCOM){
+		GPIO_PinOutSet(BSP_VCOM_ENABLE_PORT, BSP_VCOM_ENABLE_PIN);
+		uartInitData = VCOM_CONFIG;
 
-SerialClass Serial;
+	}else{
+		GPIO_PinOutClear(BSP_VCOM_ENABLE_PORT, BSP_VCOM_ENABLE_PIN);
+		uartInitData = CM3_CONFIG;
+
+	};
+};
+
+SerialClass::SerialClass(unsigned int interface, unsigned int baudrate){
+
+	baud = baudrate;
+	GPIO_PinModeSet(BSP_VCOM_ENABLE_PORT, BSP_VCOM_ENABLE_PIN, gpioModePushPull, 1);
+	if(interface == VCOM){
+		GPIO_PinOutSet(BSP_VCOM_ENABLE_PORT, BSP_VCOM_ENABLE_PIN);
+		uartInitData = VCOM_CONFIG;
+	}else{
+		GPIO_PinOutClear(BSP_VCOM_ENABLE_PORT, BSP_VCOM_ENABLE_PIN);
+		uartInitData = CM3_CONFIG;
+	}
+};
 
 void SerialClass::begin(unsigned long baud){
-    UARTDRV_Init_t uartInitData = CM3;
+//    UARTDRV_Init_t uartInitData = CM3_CONFIG;
     UARTDRV_Init(uartHandle, &uartInitData);
 };
 
-size_t SerialClass::write(uint8_t * c){
-	size_t status = UARTDRV_TransmitB(uartHandle, c, (sizeof(c)/sizeof(uint8_t)));
+size_t SerialClass::write(unsigned char * c){
+	size_t status = UARTDRV_TransmitB(uartHandle, c, (sizeof(c)/sizeof(unsigned char)));
 	return status;
 };
 

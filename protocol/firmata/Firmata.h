@@ -54,6 +54,8 @@ typedef unsigned char byte;
 #define ENCODER                 0x09 // same as PIN_MODE_ENCODER
 #define IGNORE                  0x7F // same as PIN_MODE_IGNORE
 
+SerialClass Serial(0, 9600);
+
 
 namespace firmata {
 
@@ -72,7 +74,7 @@ class FirmataClass
     /* Arduino constructors */
     void begin();
     void begin(long);
-    void begin(serial::SerialClass &s);
+    void begin(SerialClass &s);
 
     /* querying functions */
     void printVersion(void);

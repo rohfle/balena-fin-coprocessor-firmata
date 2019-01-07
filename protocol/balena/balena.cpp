@@ -10,5 +10,3 @@ void BalenaClass::init()
 	initApp();
 	GPIO_PinOutClear(BSP_VCOM_ENABLE_PORT, BSP_VCOM_ENABLE_PIN);
 }
-
-
