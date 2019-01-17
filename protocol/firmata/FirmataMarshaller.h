@@ -22,7 +22,7 @@
   #include <stdint.h>
 #endif
 
-//#include "Serial.h"
+#include "Serial.h"
 
 namespace firmata {
 
@@ -35,7 +35,7 @@ class FirmataMarshaller
     FirmataMarshaller();
 
     /* public methods */
-    void begin(Stream &s);
+    void begin(SerialClass &s);
     void end();
 
     /* serial send handling */
@@ -66,7 +66,7 @@ class FirmataMarshaller
     void sendExtendedAnalog(uint8_t pin, size_t bytec, uint8_t * bytev) const;
     void encodeByteStream (size_t bytec, uint8_t * bytev, size_t max_bytes = 0) const;
 
-    Stream * FirmataStream;
+    SerialClass * FirmataStream;
 };
 
 } // namespace firmata

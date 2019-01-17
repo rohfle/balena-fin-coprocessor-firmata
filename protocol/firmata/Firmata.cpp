@@ -116,9 +116,9 @@ void FirmataClass::begin(void)
  */
 void FirmataClass::begin(long speed)
 {
-  Serial.begin(speed);
+  FirmataStream->begin(speed);
   blinkVersion();
-  begin(Serial);
+  begin(*FirmataStream);
 }
 
 /**
@@ -265,7 +265,7 @@ void FirmataClass::parse(byte inputData)
 /**
  * @return Returns true if the parser is actively parsing data.
  */
-boolean FirmataClass::isParsingMessage(void)
+bool FirmataClass::isParsingMessage(void)
 {
   return parser.isParsingMessage();
 }
@@ -368,7 +368,7 @@ void FirmataClass::sendString(const char *string)
  */
 void FirmataClass::write(byte c)
 {
-  FirmataStream->write(c);
+  FirmataStream->write(&c);
 }
 
 /**
@@ -541,9 +541,13 @@ void FirmataClass::strobeBlinkPin(byte pin, int count, int onInterval, int offIn
 {
   byte i;
   for (i = 0; i < count; i++) {
+
     delay(offInterval);
+
     digitalWrite(pin, HIGH);
+
     delay(onInterval);
+
     digitalWrite(pin, LOW);
   }
 }

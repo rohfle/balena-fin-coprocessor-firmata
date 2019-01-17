@@ -43,7 +43,7 @@ using namespace firmata;
 void FirmataMarshaller::reportAnalog(uint8_t pin, bool stream_enable)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   // pin can only be 0-15, so chop higher bits
   FirmataStream->write(REPORT_ANALOG | (pin & 0xF));
   FirmataStream->write(stream_enable);
@@ -60,7 +60,7 @@ const
 void FirmataMarshaller::reportDigitalPort(uint8_t portNumber, bool stream_enable)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   FirmataStream->write(REPORT_DIGITAL | (portNumber & 0xF));
   FirmataStream->write(stream_enable);
 }
@@ -75,7 +75,7 @@ const
 void FirmataMarshaller::sendExtendedAnalog(uint8_t pin, size_t bytec, uint8_t * bytev)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   FirmataStream->write(START_SYSEX);
   FirmataStream->write(EXTENDED_ANALOG);
   FirmataStream->write(pin);
@@ -128,7 +128,7 @@ const
  */
 FirmataMarshaller::FirmataMarshaller()
 :
-  FirmataStream((Stream *)NULL)
+  FirmataStream((SerialClass *)NULL)
 {
 }
 
@@ -142,7 +142,7 @@ FirmataMarshaller::FirmataMarshaller()
  * transport that implements the Stream interface. Some examples include Ethernet, WiFi
  * and other UARTs on the board (Serial1, Serial2, etc).
  */
-void FirmataMarshaller::begin(Stream &s)
+void FirmataMarshaller::begin(SerialClass &s)
 {
   FirmataStream = &s;
 }
@@ -152,7 +152,7 @@ void FirmataMarshaller::begin(Stream &s)
  */
 void FirmataMarshaller::end(void)
 {
-  FirmataStream = (Stream *)NULL;
+  FirmataStream = (SerialClass *)NULL;
 }
 
 //******************************************************************************
@@ -165,7 +165,7 @@ void FirmataMarshaller::end(void)
 void FirmataMarshaller::queryFirmwareVersion(void)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   FirmataStream->write(START_SYSEX);
   FirmataStream->write(REPORT_FIRMWARE);
   FirmataStream->write(END_SYSEX);
@@ -177,7 +177,7 @@ const
 void FirmataMarshaller::queryVersion(void)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   FirmataStream->write(REPORT_VERSION);
 }
 
@@ -245,7 +245,7 @@ const
 void FirmataMarshaller::sendAnalog(uint8_t pin, uint16_t value)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   if ( (0xF >= pin) && (0x3FFF >= value) ) {
     FirmataStream->write(ANALOG_MESSAGE|pin);
     encodeByteStream(sizeof(value), reinterpret_cast<uint8_t *>(&value), sizeof(value));
@@ -284,7 +284,7 @@ const
 void FirmataMarshaller::sendDigital(uint8_t pin, uint8_t value)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   FirmataStream->write(SET_DIGITAL_PIN_VALUE);
   FirmataStream->write(pin & 0x7F);
   FirmataStream->write(value != 0);
@@ -302,7 +302,7 @@ const
 void FirmataMarshaller::sendDigitalPort(uint8_t portNumber, uint16_t portData)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   FirmataStream->write(DIGITAL_MESSAGE | (portNumber & 0xF));
   // Tx bits  0-6 (protocol v1 and higher)
   // Tx bits 7-13 (bit 7 only for protocol v2 and higher)
@@ -319,7 +319,7 @@ const
 void FirmataMarshaller::sendFirmwareVersion(uint8_t major, uint8_t minor, size_t bytec, uint8_t *bytev)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   size_t i;
   FirmataStream->write(START_SYSEX);
   FirmataStream->write(REPORT_FIRMWARE);
@@ -339,7 +339,7 @@ const
 void FirmataMarshaller::sendVersion(uint8_t major, uint8_t minor)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   FirmataStream->write(REPORT_VERSION);
   FirmataStream->write(major);
   FirmataStream->write(minor);
@@ -355,7 +355,7 @@ const
 void FirmataMarshaller::sendPinMode(uint8_t pin, uint8_t config)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   FirmataStream->write(SET_PIN_MODE);
   FirmataStream->write(pin);
   FirmataStream->write(config);
@@ -371,7 +371,7 @@ const
 void FirmataMarshaller::sendPinStateQuery(uint8_t pin)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   FirmataStream->write(START_SYSEX);
   FirmataStream->write(PIN_STATE_QUERY);
   FirmataStream->write(pin);
@@ -388,7 +388,7 @@ const
 void FirmataMarshaller::sendSysex(uint8_t command, size_t bytec, uint8_t *bytev)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   size_t i;
   FirmataStream->write(START_SYSEX);
   FirmataStream->write(command);
@@ -426,6 +426,6 @@ const
 void FirmataMarshaller::systemReset(void)
 const
 {
-  if ( (Stream *)NULL == FirmataStream ) { return; }
+  if ( (SerialClass *)NULL == FirmataStream ) { return; }
   FirmataStream->write(SYSTEM_RESET);
 }

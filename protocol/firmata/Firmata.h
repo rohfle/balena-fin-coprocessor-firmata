@@ -16,6 +16,7 @@
 
 #include "Boards.h"  /* Hardware Abstraction Layer + Wiring/Arduino */
 #include "Serial.h"
+#include "balena.h"
 #include "FirmataDefines.h"
 #include "FirmataMarshaller.h"
 #include "FirmataParser.h"
@@ -24,6 +25,8 @@
 #include <stdlib.h>
 
 typedef unsigned char byte;
+
+
 
 /* DEPRECATED as of Firmata v2.5.1. As of 2.5.1 there are separate version numbers for
  * the protocol version and the firmware version.
@@ -54,11 +57,8 @@ typedef unsigned char byte;
 #define ENCODER                 0x09 // same as PIN_MODE_ENCODER
 #define IGNORE                  0x7F // same as PIN_MODE_IGNORE
 
-SerialClass Serial(0, 9600);
-
-
 namespace firmata {
-
+//SerialClass Serial(1,115200);
 // TODO make it a subclass of a generic Serial/Stream base class
 class FirmataClass
 {
@@ -121,10 +121,11 @@ class FirmataClass
     void endSysex(void);
 
   private:
+
     uint8_t parserBuffer[MAX_DATA_BYTES];
     FirmataMarshaller marshaller;
     FirmataParser parser;
-    Stream *FirmataStream;
+    SerialClass *FirmataStream;
 
     /* firmware name and version */
     byte firmwareVersionCount;
