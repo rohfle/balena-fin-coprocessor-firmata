@@ -6,9 +6,12 @@
 #include "init_mcu.h"
 #include "init_board.h"
 #include "init_app.h"
+#include "em_gpio.h"
 #include "ble-configuration.h"
 #include "board_features.h"
 #include "hal-config.h"
+#include <platform/emdrv/ustimer/inc/ustimer.h>
+#include "Serial.h"
 
 #if defined(HAL_CONFIG)
 #include "bsphalconfig.h"
@@ -16,22 +19,45 @@
 #include "bspconfig.h"
 #endif
 
-#define EFR32BG111
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-namespace balena {
+#define EFR32BGM111 1
+
+#define HIGH 1
+#define LOW 0
+
+
+const struct PIN_MAP {
+	GPIO_Port_TypeDef port;
+	unsigned int pin;
+} port_pin[] = {
+	{gpioPortA,0},
+	{gpioPortA,1},
+	{gpioPortA,2}
+	// Finish the rest of Pin Definitions
+};
+
+void delay(unsigned long n); // delay for n milliseconds
+void digitalWrite(unsigned int pin, unsigned int value);
+unsigned int digitalRead(unsigned int pin);
+
 
 class BalenaClass{
 
+private:
+	SerialClass SerialObj;
+	void initTimer();
+
 public:
-	void init();
+	BalenaClass();
+
+	void digitalWrite(unsigned int pin, unsigned int value);
+	void pinMode(unsigned int pin, unsigned int mode);
 
 
 };
-}
 
 #ifdef __cplusplus
 }
