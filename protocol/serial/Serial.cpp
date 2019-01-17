@@ -38,6 +38,18 @@ size_t SerialClass::write(unsigned char * c){
 	return status;
 };
 
+size_t SerialClass::write(int n){
+	size_t status = UARTDRV_TransmitB(uartHandle, (unsigned char *) n, (sizeof(n)/sizeof(int)));
+	return status;
+};
+
+size_t SerialClass::write(int * n){
+	size_t status = UARTDRV_TransmitB(uartHandle, (unsigned char *) n, (sizeof(n)/sizeof(int)));
+	return status;
+};
+
+
+
 size_t SerialClass::readBytes(uint8_t* buffer, size_t size){
 	size_t status = UARTDRV_ReceiveB(uartHandle,buffer,size);
 	return status;

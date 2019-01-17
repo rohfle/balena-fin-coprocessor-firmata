@@ -80,13 +80,8 @@ typedef struct {
   UARTDRV_Buffer_t fifo[6];
 } _txBufferQueueI0;
 
-//struct BufferQueueStruct{
-//	uint16_t head = 0;
-//	uint16_t tail = 0;
-//	volatile uint16_t used = 0;
-//	const uint16_t size = 6;
-//	UARTDRV_Buffer_t fifo[EMDRV_UARTDRV_MAX_CONCURRENT_BUFS];
-//};
+typedef unsigned char byte;
+
 
 class SerialClass{
 	UARTDRV_HandleData_t uarthandleData;
@@ -125,7 +120,8 @@ public:
 //	inline size_t write(unsigned long n);
 //	inline size_t write(long n);
 //	inline size_t write(unsigned int n);
-//	inline size_t write(int n);
+	size_t write(int n);
+	inline size_t write(int * n);
 //	size_t write(const uint8_t *buffer, size_t size);
 //	size_t write(const char *buffer);
 
