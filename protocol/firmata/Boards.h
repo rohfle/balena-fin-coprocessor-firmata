@@ -901,9 +901,11 @@ writePort(port, value, bitmask):  Write an 8 bit port.
 
 // SiliconLabs BGM111
 #elif defined(EFR32BGM111)
-#define TOTAL_ANALOG_PINS       25
-#define TOTAL_PINS              25
+#define TOTAL_ANALOG_PINS       16
+#define TOTAL_PINS              16
+#if defined(DEV_BOARD)
 #define VERSION_BLINK_PIN       LED_BUILTIN
+#endif
 #define IS_PIN_DIGITAL(p)       ((p) >= 2 && (p) < TOTAL_PINS)
 #define IS_PIN_ANALOG(p)        ((p) == PIN_A0 || (p) == PIN_A1 || (p) == PIN_A2  || (p) == PIN_A3 || \
                                  (p) == PIN_A4 || (p) == PIN_A5 || (p) == PIN_A6  || (p) == PIN_A7)
