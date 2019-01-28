@@ -26,8 +26,6 @@
 
 typedef unsigned char byte;
 
-
-
 /* DEPRECATED as of Firmata v2.5.1. As of 2.5.1 there are separate version numbers for
  * the protocol version and the firmware version.
  */
@@ -58,7 +56,6 @@ typedef unsigned char byte;
 #define IGNORE                  0x7F // same as PIN_MODE_IGNORE
 
 namespace firmata {
-//SerialClass Serial(1,115200);
 // TODO make it a subclass of a generic Serial/Stream base class
 class FirmataClass
 {
@@ -176,7 +173,7 @@ extern "C" {
   typedef firmata::FirmataClass::sysexCallbackFunction sysexCallbackFunction;
 }
 
-extern firmata::FirmataClass Firmata;
+//extern firmata::FirmataClass Firmata;
 
 /*==============================================================================
  * MACROS
