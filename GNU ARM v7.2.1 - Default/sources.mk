@@ -42,5 +42,6 @@ platform/emlib/src \
 protocol/balena \
 protocol/bluetooth/lib/EFR32BG1B/GCC \
 protocol/firmata \
+protocol/i2c \
 protocol/serial \
 
