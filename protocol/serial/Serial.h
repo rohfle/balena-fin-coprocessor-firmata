@@ -8,6 +8,9 @@
 #include "em_chip.h"
 #include "em_cmu.h"
 #include "em_device.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +27,7 @@ extern "C" {
 #define VCOM 1
 #define CM3 0
 
-#define EMDRV_UARTDRV_MAX_CONCURRENT_BUFS 6
+#define EMDRV_UARTDRV_MAX_CONCURRENT_BUFS 12
 
 #define CM3_CONFIG                                  \
 {                                                   \
@@ -69,7 +72,7 @@ typedef struct {
     uint16_t tail;
     volatile uint16_t used;
     const uint16_t size;
-    UARTDRV_Buffer_t fifo[6];
+    UARTDRV_Buffer_t fifo[12];
   } _rxBufferQueueI0;
 
 typedef struct {
@@ -77,7 +80,7 @@ typedef struct {
   uint16_t tail;
   volatile uint16_t used;
   const uint16_t size;
-  UARTDRV_Buffer_t fifo[6];
+  UARTDRV_Buffer_t fifo[12];
 } _txBufferQueueI0;
 
 typedef unsigned char byte;
@@ -89,8 +92,8 @@ class SerialClass{
 	UARTDRV_Init_t uartInitData;
 
 private:
-	_rxBufferQueueI0  rxBufferQueue = {0,0,0,6};
-	_txBufferQueueI0  txBufferQueue = {0,0,0,6};
+	_rxBufferQueueI0  rxBufferQueue = {0,0,12,12};
+	_txBufferQueueI0  txBufferQueue = {0,0,12,12};
 
 public:
     SerialClass (unsigned int);
@@ -121,7 +124,7 @@ public:
 //	inline size_t write(long n);
 //	inline size_t write(unsigned int n);
 	size_t write(int n);
-	inline size_t write(int * n);
+	size_t write(int * n);
 //	size_t write(const uint8_t *buffer, size_t size);
 //	size_t write(const char *buffer);
 

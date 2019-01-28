@@ -34,20 +34,29 @@ void SerialClass::begin(unsigned long baud){
 };
 
 size_t SerialClass::write(unsigned char * c){
-	size_t status = UARTDRV_TransmitB(uartHandle, c, (sizeof(c)/sizeof(unsigned char)));
+	size_t status = UARTDRV_TransmitB(uartHandle, c, (strlen((const char *)c)/sizeof(unsigned char)));
 	return status;
 };
 
 size_t SerialClass::write(int n){
-	size_t status = UARTDRV_TransmitB(uartHandle, (unsigned char *) n, (sizeof(n)/sizeof(int)));
+	unsigned char c [64] = "";
+	itoa(n, (char *) c, 10);
+	size_t status = UARTDRV_TransmitB(uartHandle, (unsigned char *) c, (sizeof(c)/sizeof(unsigned char)));
 	return status;
 };
 
 size_t SerialClass::write(int * n){
-	size_t status = UARTDRV_TransmitB(uartHandle, (unsigned char *) n, (sizeof(n)/sizeof(int)));
+	unsigned char c [64] = "";
+	itoa(*n, (char *) c, 10);
+	size_t status = UARTDRV_TransmitB(uartHandle, (unsigned char *) n, (sizeof(n)/sizeof(unsigned char)));
 	return status;
 };
 
+int SerialClass::read(void){
+	uint8_t data[EMDRV_UARTDRV_MAX_CONCURRENT_BUFS];
+	UARTDRV_ReceiveB(uartHandle, data, (sizeof(* data)/sizeof(int)));
+	return * data;
+};
 
 
 size_t SerialClass::readBytes(uint8_t* buffer, size_t size){
