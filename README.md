@@ -7,11 +7,10 @@ This is an implementation of the Firmata firmware for SiliconLabs BGM111. It is 
 - [x] Target and test async DMA UART communication between Coprocessor and CM3
 - [x] Create base balena library for wrapping BGM111 complexity
 - [x] Verify compatibility of Firmata Marshaller and Parser Libs
-- [ ] Finish wrapper for Arduino-style *Serial* Library
-- [ ] Finish wrapper for Arduino-style *Stream* Library
+- [x] Finish wrapper for Arduino-style *Serial* Library
 - [ ] Add custom firmata handlers for CM3 Power Rails, etc.
 - [ ] Add BGM111 pin mappings/create config file?
 - [ ] Document Flashing/Firmware Modification Proceedure
 - [ ] Add support for BLE (what features?)
-- [ ] Adjust license to adhere to balena and firmata protocol
+- [ ] Adjust license to comply with balena and firmata
 
