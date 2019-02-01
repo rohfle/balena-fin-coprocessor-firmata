@@ -13,7 +13,9 @@
 #include "board_features.h"
 #include "hal-config.h"
 #include <platform/emdrv/ustimer/inc/ustimer.h>
-#include "Serial.h"
+#include "em_chip.h"
+
+//#include "Serial.h"
 
 #if defined(HAL_CONFIG)
 #include "bsphalconfig.h"
@@ -41,7 +43,9 @@ extern "C" {
 
 /* ADC */
 #define adcFreq 13000000
+typedef unsigned char byte;
 
+void initialise();
 
 struct PIN_MAP {
 	GPIO_Port_TypeDef port;
@@ -62,57 +66,23 @@ unsigned int digitalRead(unsigned int pin_no);
 void analogWrite(unsigned int pin_no, byte value);
 unsigned int analogRead(unsigned int pin_no);
 
-
 /* BalenaFin Functions */
 
-class BalenaClass{
+void initTimer();
+void initDAC();
+void initADC();
 
-private:
-//	SerialClass SerialObj;
-	void initTimer();
-	void initDAC();
-	void initADC();
+/* Analog Methods */
+void setADC(unsigned int pin_no, ADC_TypeDef * adc);
+void setDAC(unsigned int pin_no, IDAC_TypeDef * dac);
 
+/* GPIO Methods */
+void deviceMode(unsigned int pin_no, unsigned int mode);
 
+/* I2C Methods */
 
-	/* Analog Variables */
-	ADC_Init_TypeDef ADCInit;
-	ADC_InitSingle_TypeDef ADCSingle;
-	bool ADCset = false;
+/* SPI Methods */
 
-	IDAC_Init_TypeDef DACInit;
-	IDAC_OutMode_TypeDef * DACNone;
-
-public:
-	BalenaClass();
-
-
-	/* Pin Definitions */
-	PIN_MAP port_pin[4] = {
-		{gpioPortA, 0, adcPosSelAPORT3XCH8, idacOutputAPORT1YCH9, MODE_NONE},
-		{gpioPortA, 1, adcPosSelAPORT4XCH9, * DACNone, MODE_NONE},
-		{gpioPortA, 2, adcPosSelAPORT4YCH10, * DACNone, MODE_NONE},
-		{gpioPortF, 6U,adcPosSelAPORT2YCH22, * DACNone, MODE_NONE} // LED on BGM11 Dev Kit
-		// Finish the rest of Pin Definitions
-	};
-
-	/* Analog Methods */
-	void setADC(unsigned int pin_no, ADC_TypeDef * adc);
-	void setDAC(unsigned int pin_no, IDAC_TypeDef * dac);
-
-
-
-	/* GPIO Methods */
-	void deviceMode(unsigned int pin_no, unsigned int mode);
-
-	/* I2C Methods */
-
-	/* SPI Methods */
-
-
-};
-
-extern BalenaClass Balena;
 
 #ifdef __cplusplus
 }

@@ -2,20 +2,38 @@
 
 /* Balena Functions */
 
-BalenaClass::BalenaClass()
+/* Analog Variables */
+ADC_Init_TypeDef ADCInit;
+ADC_InitSingle_TypeDef ADCSingle;
+bool ADCset = false;
+
+IDAC_Init_TypeDef DACInit;
+IDAC_OutMode_TypeDef * DACNone;
+
+/* Pin Definitions */
+PIN_MAP port_pin[4] = {
+	{gpioPortA, 0, adcPosSelAPORT3XCH8, idacOutputAPORT1YCH9, MODE_NONE},
+	{gpioPortA, 1, adcPosSelAPORT4XCH9, * DACNone, MODE_NONE},
+	{gpioPortA, 2, adcPosSelAPORT4YCH10, * DACNone, MODE_NONE},
+	{gpioPortF, 6U,adcPosSelAPORT2YCH22, * DACNone, MODE_NONE} // LED on BGM11 Dev Kit
+	// Finish the rest of Pin Definitions
+};
+
+void initialise()
 {
-	initMcu();
-	initBoard();
-	initApp();
+	CHIP_Init();
+//	initMcu();
+//	initBoard();
+//	initApp();
 	initTimer();
 	CMU_ClockEnable(cmuClock_GPIO, true);
 }
 
-void BalenaClass::initTimer(){
+void initTimer(){
 	USTIMER_Init();
 };
 
-void BalenaClass::initADC(){
+void initADC(){
 	CMU_ClockEnable(cmuClock_ADC0, true);
 	ADCInit = ADC_INIT_DEFAULT;
 	ADCSingle = ADC_INITSINGLE_DEFAULT;
@@ -27,7 +45,7 @@ void BalenaClass::initADC(){
 	ADCSingle.acqTime    = adcAcqTime4;     // set acquisition time to meet minimum requirement
 };
 
-void BalenaClass::setADC(unsigned int pin_no, ADC_TypeDef * adc){
+void setADC(unsigned int pin_no, ADC_TypeDef * adc){
 	ADCSingle.posSel = port_pin[pin_no].adc;
 	port_pin[pin_no].state = MODE_ANALOG_IN;
 	ADC_Init(adc, &ADCInit);
@@ -35,7 +53,7 @@ void BalenaClass::setADC(unsigned int pin_no, ADC_TypeDef * adc){
 
 };
 
-void BalenaClass::initDAC(){
+void initDAC(){
 	EMU_DCDCInit_TypeDef dcdcInit = EMU_DCDCINIT_DEFAULT;
 	EMU_DCDCInit(&dcdcInit);
 	 // Enable IDAC clock
@@ -48,7 +66,7 @@ void BalenaClass::initDAC(){
 
 }
 
-void BalenaClass::setDAC(unsigned int pin_no, IDAC_TypeDef * dac){
+void setDAC(unsigned int pin_no, IDAC_TypeDef * dac){
 	// Choose the output current to be 2 microamps
 	IDAC_RangeSet(IDAC0, idacCurrentRange1);
 	IDAC_StepSet(IDAC0, 4);
@@ -65,11 +83,11 @@ void deviceMode(unsigned int pin, unsigned int mode){
 };
 
 void pinMode(unsigned int pin_no, unsigned int value){
-	GPIO_PinModeSet(Balena.port_pin[pin_no].port, Balena.port_pin[pin_no].pin , gpioModePushPull, value);
+	GPIO_PinModeSet(port_pin[pin_no].port, port_pin[pin_no].pin , gpioModePushPull, value);
 };
 
 bool pinExists(unsigned int pin_no){
-	if(pin_no <= ((sizeof(Balena.port_pin) / sizeof(PIN_MAP)))){
+	if(pin_no <= ((sizeof(port_pin) / sizeof(PIN_MAP)))){
 		return false;
 	}
 	else {
@@ -80,17 +98,17 @@ bool pinExists(unsigned int pin_no){
 /* Digital I/O */
 
 unsigned int digitalRead(unsigned int pin_no){
-	return GPIO_PinInGet (Balena.port_pin[pin_no].port, Balena.port_pin[pin_no].pin);
+	return GPIO_PinInGet (port_pin[pin_no].port, port_pin[pin_no].pin);
 };
 
 void digitalWrite(unsigned int pin_no, unsigned int value){
-	GPIO_PinModeSet(Balena.port_pin[pin_no].port, Balena.port_pin[pin_no].pin , gpioModePushPull, value);
+	GPIO_PinModeSet(port_pin[pin_no].port, port_pin[pin_no].pin , gpioModePushPull, value);
 };
 
 /* Analog I/O */
 
 void analogWrite(unsigned int pin_no, byte value){
-	if(Balena.port_pin[pin_no].state == MODE_ANALOG_OUT){
+	if(port_pin[pin_no].state == MODE_ANALOG_OUT){
 
 	}
 	else {
@@ -109,8 +127,6 @@ unsigned int analogRead(unsigned int pin_no, byte value){
 void delay(unsigned int n){
 	USTIMER_Delay(n * 1000);
 };
-
-
 
 
 
