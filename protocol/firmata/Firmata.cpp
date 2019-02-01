@@ -249,6 +249,7 @@ void FirmataClass::processInput(void)
 {
   int inputData = FirmataStream->read(); // this is 'int' to handle -1 when no data
   if (inputData != -1) {
+
     parser.parse(inputData);
   }
 }
@@ -368,7 +369,9 @@ void FirmataClass::sendString(const char *string)
  */
 void FirmataClass::write(byte c)
 {
-  FirmataStream->write(&c);
+  FirmataStream->write(c);
+//  FirmataStream->write(&c);
+
 }
 
 /**

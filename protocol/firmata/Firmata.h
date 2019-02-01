@@ -173,7 +173,7 @@ extern "C" {
   typedef firmata::FirmataClass::sysexCallbackFunction sysexCallbackFunction;
 }
 
-//extern firmata::FirmataClass Firmata;
+extern firmata::FirmataClass Firmata;
 
 /*==============================================================================
  * MACROS

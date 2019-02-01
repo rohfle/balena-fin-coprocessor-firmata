@@ -907,15 +907,15 @@ writePort(port, value, bitmask):  Write an 8 bit port.
 #define VERSION_BLINK_PIN       LED_BUILTIN
 #endif
 #define IS_PIN_DIGITAL(p)       ((p) >= 2 && (p) < TOTAL_PINS)
-#define IS_PIN_ANALOG(p)        ((p) == PIN_A0 || (p) == PIN_A1 || (p) == PIN_A2  || (p) == PIN_A3 || \
-                                 (p) == PIN_A4 || (p) == PIN_A5 || (p) == PIN_A6  || (p) == PIN_A7)
+#define IS_PIN_ANALOG(p)        ((p) == 0 || (p) == 1 || (p) == 2  || (p) == 3 || \
+                                 (p) == 4 || (p) == 5 || (p) == 6  || (p) == 7)
 #define IS_PIN_PWM(p)           digitalPinHasPWM(p)
 #define IS_PIN_SERVO(p)         IS_PIN_DIGITAL(p)
-#define IS_PIN_I2C(p)           ((p) == PIN_WIRE_SDA || (p) == PIN_WIRE_SCL)
+#define IS_PIN_I2C(p)           ((p) == 11 || (p) == 12)
 #define IS_PIN_SPI(p)           ((p) == SS || (p)== MOSI || (p) == MISO || (p == SCK))
 #define PIN_TO_DIGITAL(p)       (p)
-#define PIN_TO_ANALOG(p)        ( ((p) == PIN_A0) ? 0 : ((p) == PIN_A1) ? 1 : ((p) == PIN_A2) ? 2 : ((p) == PIN_A3) ? 3 : \
-                                  ((p) == PIN_A4) ? 4 : ((p) == PIN_A5) ? 5 : ((p) == PIN_A6) ? 6 : ((p) == PIN_A7) ? 7 : (127))
+#define PIN_TO_ANALOG(p)        ( ((p) == 0) ? 0 : ((p) == 1) ? 1 : ((p) == 2) ? 2 : ((p) == 3) ? 3 : \
+                                  ((p) == 4) ? 4 : ((p) == 5) ? 5 : ((p) == 6) ? 6 : ((p) == 7) ? 7 : (127))
 #define PIN_TO_PWM(p)           (p)
 #define PIN_TO_SERVO(p)         (p)
 
