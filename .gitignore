@@ -41,3 +41,4 @@
 # Simplicity Studio
 .settings
 .pdm
+.cproject
