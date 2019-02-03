@@ -8,24 +8,28 @@ ADC_InitSingle_TypeDef ADCSingle;
 bool ADCset = false;
 
 IDAC_Init_TypeDef DACInit;
-IDAC_OutMode_TypeDef * DACNone;
+IDAC_OutMode_TypeDef * IDACNone;
 
 /* Pin Definitions */
-PIN_MAP port_pin[4] = {
+PIN_MAP port_pin[NUM_PINS] = {
 	{gpioPortA, 0, adcPosSelAPORT3XCH8, idacOutputAPORT1YCH9, MODE_NONE},
-	{gpioPortA, 1, adcPosSelAPORT4XCH9, * DACNone, MODE_NONE},
-	{gpioPortA, 2, adcPosSelAPORT4YCH10, * DACNone, MODE_NONE},
-	{gpioPortF, 6U,adcPosSelAPORT2YCH22, * DACNone, MODE_NONE} // LED on BGM11 Dev Kit
+	{gpioPortA, 1, adcPosSelAPORT4XCH9, * IDACNone, MODE_NONE},
+	{gpioPortA, 2, adcPosSelAPORT4YCH10, * IDACNone, MODE_NONE},
+	{gpioPortF, 6U,adcPosSelAPORT2YCH22, * IDACNone, MODE_NONE}, // LED on BGM11 Dev Kit
+	{gpioPortF, 0, adcPosSelAPORT1XCH16, * IDACNone, MODE_NONE},
+	{gpioPortB, 11, adcPosSelAPORT3YCH27, * IDACNone, MODE_NONE}
+
 	// Finish the rest of Pin Definitions
 };
 
-void initialise()
+void balenaInit()
 {
 	CHIP_Init();
 //	initMcu();
 //	initBoard();
 //	initApp();
 	initTimer();
+	initADC();
 	CMU_ClockEnable(cmuClock_GPIO, true);
 }
 
@@ -50,7 +54,6 @@ void setADC(unsigned int pin_no, ADC_TypeDef * adc){
 	port_pin[pin_no].state = MODE_ANALOG_IN;
 	ADC_Init(adc, &ADCInit);
 	ADC_InitSingle(adc, &ADCSingle);
-
 };
 
 void initDAC(){
@@ -62,8 +65,6 @@ void initDAC(){
 	// Initialize IDAC
 	DACInit = IDAC_INIT_DEFAULT;
 	IDAC_Init(IDAC0, &DACInit);
-
-
 }
 
 void setDAC(unsigned int pin_no, IDAC_TypeDef * dac){
@@ -116,10 +117,14 @@ void analogWrite(unsigned int pin_no, byte value){
 	};
 };
 
-unsigned int analogRead(unsigned int pin_no, byte value){
-	unsigned int data;
-	data = ADC_DataSingleGet(ADC0);
-	return data;
+uint32_t analogRead(unsigned int pin_no){
+	if(port_pin[pin_no].state != MODE_ANALOG_IN){
+		setADC(pin_no, ADC0);
+//		digitalWrite(3,0);
+	}
+	 ADC_Start(ADC0, adcStartSingle);
+	 while(!(ADC0->STATUS & _ADC_STATUS_SINGLEDV_MASK));
+	return  ADC_DataSingleGet(ADC0);
 };
 
 /* Timer Functions */
