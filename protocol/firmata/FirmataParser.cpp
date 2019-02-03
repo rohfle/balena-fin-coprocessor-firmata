@@ -156,6 +156,7 @@ void FirmataParser::parse(uint8_t inputData)
         executeMultiByteCommand = command;
         break;
       case START_SYSEX:
+
         parsingSysex = true;
         sysexBytesRead = 0;
         break;
@@ -426,9 +427,12 @@ size_t FirmataParser::decodeByteStream(size_t bytec, uint8_t * bytev) {
  */
 void FirmataParser::processSysexMessage(void)
 {
+
   switch (dataBuffer[0]) { //first byte in buffer is command
     case REPORT_FIRMWARE:
+
       if (currentReportFirmwareCallback) {
+
         const size_t major_version_offset = 1;
         const size_t minor_version_offset = 2;
         const size_t string_offset = 3;

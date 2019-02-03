@@ -11,6 +11,8 @@
   See file LICENSE.txt for further informations on licensing terms.
 */
 
+#include "balena.h"
+
 #ifndef FirmataParser_h
 #define FirmataParser_h
 
