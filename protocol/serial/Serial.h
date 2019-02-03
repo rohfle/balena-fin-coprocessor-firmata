@@ -172,7 +172,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include "balena.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -241,7 +240,7 @@ public:
 	int baudRate(void);
 	size_t getRxBufferSize();
 
-	uint8_t read(void);
+	int read(void);
 //	size_t readBytes(char* buffer, size_t size);
 	uint32_t readBytes(uint8_t * dataPtr, uint32_t dataLen);
 	size_t readBytesUntil();

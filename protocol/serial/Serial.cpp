@@ -405,6 +405,15 @@ SerialClass::SerialClass(){
 	  uartInit.prsRxEnable  = false;          /* Enable USART Rx via Peripheral Reflex System */
 	  uartInit.prsRxCh      = usartPrsRxCh0;  /* Select PRS channel if enabled */
 
+
+};
+
+SerialClass::SerialClass(unsigned int interface, long baudrate){
+
+};
+
+void SerialClass::begin(long baudrate){
+	uartInit.baudrate = baudrate;
 	  /* Initialize USART with uartInit struct */
 	  USART_InitAsync(USART0, &uartInit);
 
@@ -420,14 +429,6 @@ SerialClass::SerialClass(){
 	  USART0->ROUTEPEN |= USART_ROUTEPEN_TXPEN | USART_ROUTEPEN_RXPEN;
 	  USART0->ROUTELOC0 = USART_ROUTELOC0_RXLOC_LOC0 | USART_ROUTELOC0_TXLOC_LOC0;
 	  /* Enable UART */
-};
-
-SerialClass::SerialClass(unsigned int interface, long baudrate){
-
-};
-
-void SerialClass::begin(long baudrate){
-	uartInit.baudrate = baudrate;
 	USART_Enable(USART0, usartEnable);
 };
 
@@ -485,7 +486,7 @@ void SerialClass::write(uint8_t * dataPtr, uint32_t dataLen)
   USART_IntEnable(USART0, USART_IEN_TXBL);
 }
 
-uint8_t SerialClass::read(void)
+int SerialClass::read(void)
 {
   uint8_t ch;
   /* Check if there is a byte that is ready to be fetched. If no byte is ready, wait for incoming data */
