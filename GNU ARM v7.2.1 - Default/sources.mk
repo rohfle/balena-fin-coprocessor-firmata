@@ -34,6 +34,7 @@ platform/Device/SiliconLabs/EFR32BG1B/Source/GCC \
 platform/Device/SiliconLabs/EFR32BG1B/Source \
 platform/emdrv/dmadrv/src \
 platform/emdrv/gpiointerrupt/src \
+platform/emdrv/rtcdrv \
 platform/emdrv/sleep/src \
 platform/emdrv/tempdrv/src \
 platform/emdrv/uartdrv/src \
