@@ -2,14 +2,8 @@
 #include "Firmata.h"
 #include "Serial.h"
 
-
 SerialClass Serial;
-//FirmataClass Firmata;
-/* Declare some strings */
-const char     welcomeString[]  = "balenaFin Firmata Test...\r\n";
-const uint32_t welLen           = sizeof(welcomeString) - 1;
 
-/* Declare a circular buffer structure to use for Rx and Tx queues */
 #define BUFFERSIZE          256
 #define I2C_WRITE                   B00000000
 #define I2C_READ                    B00001000
@@ -46,8 +40,8 @@ byte portConfigInputs[TOTAL_PORTS]; // each bit: 1 = pin in INPUT, 0 = anything 
 
 /* timer variables */
 unsigned long currentMillis;        // store the current value from millis()
-unsigned long previousMillis;       // for comparison with currentMillis
-unsigned int samplingInterval = 19; // how often to run the main loop (in ms)
+unsigned long previousMillis = 0;       // for comparison with currentMillis
+unsigned int samplingInterval = 2000; // how often to run the main loop (in ms)
 
 /* i2c data */
 struct i2c_device_info {
@@ -203,7 +197,7 @@ void setPinValueCallback(byte pin, int value)
 
 void reportAnalogCallback(byte analogPin, int value)
 {
-	digitalWrite(3,0);
+
   if (analogPin < TOTAL_ANALOG_PINS) {
     if (value == 0) {
       analogInputsToReport = analogInputsToReport & ~ (1 << analogPin);
@@ -219,7 +213,6 @@ void reportAnalogCallback(byte analogPin, int value)
       }
     }
   }
-  // TODO: save status to EEPROM here, if changed
 }
 
 void reportDigitalCallback(byte port, int value)
@@ -464,6 +457,40 @@ void sysexCallback(byte command, byte argc, byte *argv)
   }
 }
 
+void digitalWriteCallback(byte port, int value)
+{
+  byte pin, lastPin, pinValue, mask = 1, pinWriteMask = 0;
+
+  if (port < TOTAL_PORTS) {
+    // create a mask of the pins on this port that are writable.
+    lastPin = port * 8 + 8;
+    if (lastPin > TOTAL_PINS) lastPin = TOTAL_PINS;
+    for (pin = port * 8; pin < lastPin; pin++) {
+      // do not disturb non-digital pins (eg, Rx & Tx)
+      if (IS_PIN_DIGITAL(pin)) {
+        // do not touch pins in PWM, ANALOG, SERVO or other modes
+        if (Firmata.getPinMode(pin) == OUTPUT || Firmata.getPinMode(pin) == INPUT) {
+          pinValue = ((byte)value & mask) ? 1 : 0;
+          if (Firmata.getPinMode(pin) == OUTPUT) {
+            pinWriteMask |= mask;
+          } else if (Firmata.getPinMode(pin) == INPUT && pinValue == 1 && Firmata.getPinState(pin) != 1) {
+            // only handle INPUT here for backwards compatibility
+#if ARDUINO > 100
+            pinMode(pin, INPUT_PULLUP);
+#else
+            // only write to the INPUT pin to enable pullups if Arduino v1.0.0 or earlier
+            pinWriteMask |= mask;
+#endif
+          }
+          Firmata.setPinState(pin, pinValue);
+        }
+      }
+      mask = mask << 1;
+    }
+    writePort(port, (byte)value, pinWriteMask);
+  }
+}
+
 void systemResetCallback()
 {
   isResetting = true;
@@ -516,6 +543,29 @@ void systemResetCallback()
   isResetting = false;
 }
 
+//void checkDigitalInputs(void)
+//{
+//  /* Using non-looping code allows constants to be given to readPort().
+//   * The compiler will apply substantial optimizations if the inputs
+//   * to readPort() are compile-time constants. */
+//  if (TOTAL_PORTS > 0 && reportPINs[0]) outputPort(0, readPort(0, portConfigInputs[0]), false);
+//  if (TOTAL_PORTS > 1 && reportPINs[1]) outputPort(1, readPort(1, portConfigInputs[1]), false);
+//  if (TOTAL_PORTS > 2 && reportPINs[2]) outputPort(2, readPort(2, portConfigInputs[2]), false);
+//  if (TOTAL_PORTS > 3 && reportPINs[3]) outputPort(3, readPort(3, portConfigInputs[3]), false);
+//  if (TOTAL_PORTS > 4 && reportPINs[4]) outputPort(4, readPort(4, portConfigInputs[4]), false);
+//  if (TOTAL_PORTS > 5 && reportPINs[5]) outputPort(5, readPort(5, portConfigInputs[5]), false);
+//  if (TOTAL_PORTS > 6 && reportPINs[6]) outputPort(6, readPort(6, portConfigInputs[6]), false);
+//  if (TOTAL_PORTS > 7 && reportPINs[7]) outputPort(7, readPort(7, portConfigInputs[7]), false);
+//  if (TOTAL_PORTS > 8 && reportPINs[8]) outputPort(8, readPort(8, portConfigInputs[8]), false);
+//  if (TOTAL_PORTS > 9 && reportPINs[9]) outputPort(9, readPort(9, portConfigInputs[9]), false);
+//  if (TOTAL_PORTS > 10 && reportPINs[10]) outputPort(10, readPort(10, portConfigInputs[10]), false);
+//  if (TOTAL_PORTS > 11 && reportPINs[11]) outputPort(11, readPort(11, portConfigInputs[11]), false);
+//  if (TOTAL_PORTS > 12 && reportPINs[12]) outputPort(12, readPort(12, portConfigInputs[12]), false);
+//  if (TOTAL_PORTS > 13 && reportPINs[13]) outputPort(13, readPort(13, portConfigInputs[13]), false);
+//  if (TOTAL_PORTS > 14 && reportPINs[14]) outputPort(14, readPort(14, portConfigInputs[14]), false);
+//  if (TOTAL_PORTS > 15 && reportPINs[15]) outputPort(15, readPort(15, portConfigInputs[15]), false);
+//}
+
 /******************************************************************************
  * @brief  Main function
  *
@@ -528,44 +578,55 @@ int main(void)
 	Firmata.attach(REPORT_ANALOG, reportAnalogCallback);
 	Firmata.attach(REPORT_DIGITAL, reportDigitalCallback);
 	Firmata.attach(SET_PIN_MODE, setPinModeCallback);
-//	Firmata.attach(SET_DIGITAL_PIN_VALUE, setPinValueCallback);
+	Firmata.attach(SET_DIGITAL_PIN_VALUE, setPinValueCallback);
 	Firmata.attach(START_SYSEX, sysexCallback);
 	Firmata.attach(SYSTEM_RESET, systemResetCallback);
 
 	balenaInit();
 
-	digitalWrite(3,1);
+	digitalWrite(12,1);
 
-	Serial.begin(57600);;
+	Serial.begin(57600);
 
 	Firmata.begin(Serial);
 
 	while(1){
-		  if(Firmata.available() > 0){
-		     Firmata.processInput();
-		  }
-		  else{
+		 byte pin, analogPin;
 
-		  }
-//		  Serial.write(i);
-////		  Serial.write(analogRead(5));
-//		  Serial.write(nl,2);
-//		  delay(1000);
-	  }
+		  /* DIGITALREAD - as fast as possible, check for changes and output them to the
+		   * FTDI buffer using Serial.print()  */
+//		  checkDigitalInputs();
 
-//  while (1)
-//  {
-////    /* Wait in EM1 while UART transmits */
-//////    EMU_EnterEM1();
-////    /* Check if termination character is received */
-//    if (Serial.available() > 0)
-//    {
-//      /* Copy received data to UART transmit queue */
-//      uint8_t tmpBuf[BUFFERSIZE];
-//      unsigned long len = Serial.readBytes(tmpBuf, 0);
-//      Serial.write(tmpBuf, len);
-//    }
-//  }
+
+		  /* STREAMREAD - processing incoming messagse as soon as possible, while still
+		   * checking digital inputs.  */
+		  while (Firmata.available() > 0)
+		    Firmata.processInput();
+
+		  // TODO - ensure that Stream buffer doesn't go over 60 bytes
+		  currentMillis = millis();
+		  if (currentMillis - previousMillis > samplingInterval) {
+		    previousMillis += samplingInterval;
+		    /* ANALOGREAD - do all analogReads() at the configured sampling interval */
+		    for (pin = 0; pin < TOTAL_PINS; pin++) {
+		      if (IS_PIN_ANALOG(pin) && Firmata.getPinMode(pin) == PIN_MODE_ANALOG) {
+		        analogPin = PIN_TO_ANALOG(pin);
+
+		        if (analogInputsToReport & (1 << analogPin)) {
+
+		          Firmata.sendAnalog(analogPin, analogRead(analogPin));
+		        }
+		      }
+		    }
+		    // report i2c data for all device with read continuous mode enabled
+//		    if (queryIndex > -1) {
+//		      for (byte i = 0; i < queryIndex + 1; i++) {
+//		        readAndReportData(query[i].addr, query[i].reg, query[i].bytes, query[i].stopTX);
+//		      }
+//		    }
+		  }
+	}
 }
+
 
 
