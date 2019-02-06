@@ -901,21 +901,20 @@ writePort(port, value, bitmask):  Write an 8 bit port.
 
 // SiliconLabs BGM111
 #elif defined(EFR32BGM111)
-#define TOTAL_ANALOG_PINS       16
-#define TOTAL_PINS              16
+#define TOTAL_ANALOG_PINS       20
+#define TOTAL_PINS              20
 #if defined(DEV_BOARD)
 #define VERSION_BLINK_PIN       LED_BUILTIN
 #endif
-#define IS_PIN_DIGITAL(p)       ((p) >= 2 && (p) < TOTAL_PINS)
-#define IS_PIN_ANALOG(p)        ((p) == 0 || (p) == 1 || (p) == 2  || (p) == 3 || \
-                                 (p) == 4 || (p) == 5 || (p) == 6  || (p) == 7)
+#define IS_PIN_DIGITAL(p)       ((p) >= 0 && (p) < TOTAL_PINS)
+#define IS_PIN_ANALOG(p)        ((p) >= 0 && (p) < 16)
+
 #define IS_PIN_PWM(p)           digitalPinHasPWM(p)
 #define IS_PIN_SERVO(p)         IS_PIN_DIGITAL(p)
-#define IS_PIN_I2C(p)           ((p) == 11 || (p) == 12)
-#define IS_PIN_SPI(p)           ((p) == SS || (p)== MOSI || (p) == MISO || (p == SCK))
+#define IS_PIN_I2C(p)           ((p) == 18 || (p) == 19)
+#define IS_PIN_SPI(p)           ((p) == 1 || (p)== 5 || (p) == 7 || (p == 3))
 #define PIN_TO_DIGITAL(p)       (p)
-#define PIN_TO_ANALOG(p)        ( ((p) == 0) ? 0 : ((p) == 1) ? 1 : ((p) == 2) ? 2 : ((p) == 3) ? 3 : \
-                                  ((p) == 4) ? 4 : ((p) == 5) ? 5 : ((p) == 6) ? 6 : ((p) == 7) ? 7 : (127))
+#define PIN_TO_ANALOG(p)        (p)
 #define PIN_TO_PWM(p)           (p)
 #define PIN_TO_SERVO(p)         (p)
 
@@ -1014,7 +1013,7 @@ static inline unsigned char writePort(byte port, byte value, byte bitmask)
 
 
 #ifndef TOTAL_PORTS
-#define TOTAL_PORTS             ((TOTAL_PINS + 7) / 8)
+#define TOTAL_PORTS             (6)
 #endif
 
 
