@@ -3,17 +3,21 @@
 
 #include <platform/emlib/inc/em_cmu.h>
 #include <platform/emlib/inc/em_emu.h>
+#include <platform/emlib/inc/em_rtcc.h>
+#include <platform/emlib/inc/em_chip.h>
 #include "init_mcu.h"
-#include "init_board.h"
-#include "init_app.h"
+//#include "init_board.h"
+//#include "init_app.h"
 #include "em_gpio.h"
 #include "em_adc.h"
 #include "em_idac.h"
+#include "em_chip.h"
 #include "ble-configuration.h"
 #include "board_features.h"
 #include "hal-config.h"
 #include <platform/emdrv/ustimer/inc/ustimer.h>
-#include "em_chip.h"
+#include <platform/emdrv/tempdrv/inc/tempdrv.h>
+#include <platform/emdrv/rtcdrv/rtcdriver.h>
 
 #if defined(HAL_CONFIG)
 #include "bsphalconfig.h"
@@ -26,7 +30,7 @@ extern "C" {
 #endif
 
 #define EFR32BGM111 1
-#define NUM_PINS 6
+#define NUM_PINS 20
 
 #define DAC_COUNT 6
 
@@ -61,10 +65,19 @@ struct PIN_MAP {
 /* Setup BGM111 */
 
 void balenaInit();
+void initMCU();
+void initMCU_CLK();
+void initGPIO();
 void initTimer();
-void initDAC();
+void initIDAC();
 void initADC();
 
+#define DEVINFO_MODULEINFO_HFXOCALVAL_MASK  0x00080000UL
+// Calibration value for HFXO CTUNE is at DEVINFO Offset 0x08
+#define DEVINFO_MODULEINFO_CRYSTALOSCCALVAL  (*((uint16_t *) (uint32_t)(DEVINFO_BASE+0x8UL)))
+// [15:9] : (LFXOTUNING) Calibration for LFXO TUNING
+// [8:0]  : (HFXOCTUNE) Calibration for HFXO CTUNE
+#define DEVINFO_HFXOCTUNE_MASK  0x01FFUL
 
 /* Arduino Functions */
 
@@ -78,11 +91,11 @@ void analogWrite(unsigned int pin_no, byte value);
 
 /* BalenaFin Functions */
 
-
+uint32_t millis();
 
 /* Analog Methods */
 void setADC(unsigned int pin_no, ADC_TypeDef * adc);
-void setDAC(unsigned int pin_no, IDAC_TypeDef * dac);
+void setIDAC(unsigned int pin_no, IDAC_TypeDef * dac);
 
 uint32_t analogRead(unsigned int pin_no);
 
