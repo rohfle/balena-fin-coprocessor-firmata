@@ -17,7 +17,7 @@ This is an implementation of the Firmata firmware for SiliconLabs BGM111. It is 
 | type                  | command | MIDI channel | first byte          | second byte     | currently supported? |
 | --------------------- | ------- | ------------ | ------------------- | --------------- | -------------------- |
 | analog I/O message    | 0xE0    | pin #        | LSB(bits 0-6)       | MSB(bits 7-13)  |          ✅          |
-| digital I/O message   | 0x90    | port         | LSB(bits 0-6)       | MSB(bits 7-13)  |          ❌          |
+| digital I/O message   | 0x90    | port         | LSB(bits 0-6)       | MSB(bits 7-13)  |          ✅          |
 | report analog pin     | 0xC0    | pin #        | disable/enable(0/1) | - n/a -         |          ✅          |
 | report digital port   | 0xD0    | port         | disable/enable(0/1) | - n/a -         |          ✅          |
 |                       |         |              |                     |                 |                      |
