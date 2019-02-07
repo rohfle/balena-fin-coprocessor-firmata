@@ -75,6 +75,8 @@ void sysexCallback(byte, byte, byte*);
 
 void outputPort(byte portNumber, byte portValue, byte forceSend)
 {
+	Serial.write(portNumber);
+	Serial.write(portValue);
   // pins not configured as INPUT are cleared to zeros
   portValue = portValue & portConfigInputs[portNumber];
   // only send if the value is different than previously sent
@@ -232,6 +234,53 @@ void reportDigitalCallback(byte port, int value)
   // pins configured as analog
 }
 
+void analogWriteCallback(byte pin, int value)
+{
+  if (pin < TOTAL_PINS) {
+    switch (Firmata.getPinMode(pin)) {
+//      case PIN_MODE_SERVO:
+//        if (IS_PIN_DIGITAL(pin))
+//          servos[servoPinMap[pin]].write(value);
+//        Firmata.setPinState(pin, value);
+//        break;
+      case PIN_MODE_PWM:
+        if (IS_PIN_PWM(pin))
+          analogWrite(PIN_TO_PWM(pin), value);
+        Firmata.setPinState(pin, value);
+        break;
+    }
+  }
+}
+
+void digitalWriteCallback(byte port, int value)
+{
+  byte pin, lastPin, pinValue, mask = 1, pinWriteMask = 0;
+  if (port < TOTAL_PORTS) {
+    // create a mask of the pins on this port that are writable.
+    lastPin = port * 8 + 8;
+    if (lastPin > TOTAL_PINS) lastPin = TOTAL_PINS;
+    for (pin = port * 8; pin < lastPin; pin++) {
+      // do not disturb non-digital pins (eg, Rx & Tx)
+      if (IS_PIN_DIGITAL(pin)) {
+        // do not touch pins in PWM, ANALOG, SERVO or other modes
+        if (Firmata.getPinMode(pin) == OUTPUT || Firmata.getPinMode(pin) == INPUT) {
+          pinValue = ((byte)value & mask) ? 1 : 0;
+
+          if (Firmata.getPinMode(pin) == OUTPUT) {
+            pinWriteMask |= mask;
+          }
+          else if (Firmata.getPinMode(pin) == INPUT && pinValue == 1 && Firmata.getPinState(pin) != 1) {
+            pinMode(pin, INPUT_PULLUP);
+          }
+          Firmata.setPinState(pin, pinValue);
+          digitalWrite((pin), pinValue);
+        }
+      }
+      mask = mask << 1;
+    }
+  }
+}
+
 /******************************************************************************
  * @brief  Sysex Commands
  *
@@ -372,24 +421,24 @@ void sysexCallback(byte command, byte argc, byte *argv)
 //        }
 //      }
 //      break;
-//    case SAMPLING_INTERVAL:
-//      if (argc > 1) {
-//        samplingInterval = argv[0] + (argv[1] << 7);
-//        if (samplingInterval < MINIMUM_SAMPLING_INTERVAL) {
-//          samplingInterval = MINIMUM_SAMPLING_INTERVAL;
-//        }
-//      } else {
-//        //Firmata.sendString("Not enough data");
-//      }
-//      break;
-//    case EXTENDED_ANALOG:
-//      if (argc > 1) {
-//        int val = argv[1];
-//        if (argc > 2) val |= (argv[2] << 7);
-//        if (argc > 3) val |= (argv[3] << 14);
-//        analogWriteCallback(argv[0], val);
-//      }
-//      break;
+    case SAMPLING_INTERVAL:
+      if (argc > 1) {
+        samplingInterval = argv[0] + (argv[1] << 7);
+        if (samplingInterval < MINIMUM_SAMPLING_INTERVAL) {
+          samplingInterval = MINIMUM_SAMPLING_INTERVAL;
+        }
+      } else {
+        Firmata.sendString("Not enough data");
+      }
+      break;
+    case EXTENDED_ANALOG:
+      if (argc > 1) {
+        int val = argv[1];
+        if (argc > 2) val |= (argv[2] << 7);
+        if (argc > 3) val |= (argv[3] << 14);
+        analogWriteCallback(argv[0], val);
+      }
+      break;
     case CAPABILITY_QUERY:
       Firmata.write(START_SYSEX);
       Firmata.write(CAPABILITY_RESPONSE);
@@ -457,40 +506,6 @@ void sysexCallback(byte command, byte argc, byte *argv)
   }
 }
 
-void digitalWriteCallback(byte port, int value)
-{
-  byte pin, lastPin, pinValue, mask = 1, pinWriteMask = 0;
-
-  if (port < TOTAL_PORTS) {
-    // create a mask of the pins on this port that are writable.
-    lastPin = port * 8 + 8;
-    if (lastPin > TOTAL_PINS) lastPin = TOTAL_PINS;
-    for (pin = port * 8; pin < lastPin; pin++) {
-      // do not disturb non-digital pins (eg, Rx & Tx)
-      if (IS_PIN_DIGITAL(pin)) {
-        // do not touch pins in PWM, ANALOG, SERVO or other modes
-        if (Firmata.getPinMode(pin) == OUTPUT || Firmata.getPinMode(pin) == INPUT) {
-          pinValue = ((byte)value & mask) ? 1 : 0;
-          if (Firmata.getPinMode(pin) == OUTPUT) {
-            pinWriteMask |= mask;
-          } else if (Firmata.getPinMode(pin) == INPUT && pinValue == 1 && Firmata.getPinState(pin) != 1) {
-            // only handle INPUT here for backwards compatibility
-#if ARDUINO > 100
-            pinMode(pin, INPUT_PULLUP);
-#else
-            // only write to the INPUT pin to enable pullups if Arduino v1.0.0 or earlier
-            pinWriteMask |= mask;
-#endif
-          }
-          Firmata.setPinState(pin, pinValue);
-        }
-      }
-      mask = mask << 1;
-    }
-    writePort(port, (byte)value, pinWriteMask);
-  }
-}
-
 void systemResetCallback()
 {
   isResetting = true;
@@ -543,28 +558,28 @@ void systemResetCallback()
   isResetting = false;
 }
 
-//void checkDigitalInputs(void)
-//{
-//  /* Using non-looping code allows constants to be given to readPort().
-//   * The compiler will apply substantial optimizations if the inputs
-//   * to readPort() are compile-time constants. */
-//  if (TOTAL_PORTS > 0 && reportPINs[0]) outputPort(0, readPort(0, portConfigInputs[0]), false);
-//  if (TOTAL_PORTS > 1 && reportPINs[1]) outputPort(1, readPort(1, portConfigInputs[1]), false);
-//  if (TOTAL_PORTS > 2 && reportPINs[2]) outputPort(2, readPort(2, portConfigInputs[2]), false);
-//  if (TOTAL_PORTS > 3 && reportPINs[3]) outputPort(3, readPort(3, portConfigInputs[3]), false);
-//  if (TOTAL_PORTS > 4 && reportPINs[4]) outputPort(4, readPort(4, portConfigInputs[4]), false);
-//  if (TOTAL_PORTS > 5 && reportPINs[5]) outputPort(5, readPort(5, portConfigInputs[5]), false);
-//  if (TOTAL_PORTS > 6 && reportPINs[6]) outputPort(6, readPort(6, portConfigInputs[6]), false);
-//  if (TOTAL_PORTS > 7 && reportPINs[7]) outputPort(7, readPort(7, portConfigInputs[7]), false);
-//  if (TOTAL_PORTS > 8 && reportPINs[8]) outputPort(8, readPort(8, portConfigInputs[8]), false);
-//  if (TOTAL_PORTS > 9 && reportPINs[9]) outputPort(9, readPort(9, portConfigInputs[9]), false);
-//  if (TOTAL_PORTS > 10 && reportPINs[10]) outputPort(10, readPort(10, portConfigInputs[10]), false);
-//  if (TOTAL_PORTS > 11 && reportPINs[11]) outputPort(11, readPort(11, portConfigInputs[11]), false);
-//  if (TOTAL_PORTS > 12 && reportPINs[12]) outputPort(12, readPort(12, portConfigInputs[12]), false);
-//  if (TOTAL_PORTS > 13 && reportPINs[13]) outputPort(13, readPort(13, portConfigInputs[13]), false);
-//  if (TOTAL_PORTS > 14 && reportPINs[14]) outputPort(14, readPort(14, portConfigInputs[14]), false);
-//  if (TOTAL_PORTS > 15 && reportPINs[15]) outputPort(15, readPort(15, portConfigInputs[15]), false);
-//}
+void checkDigitalInputs(void)
+{
+  /* Using non-looping code allows constants to be given to readPort().
+   * The compiler will apply substantial optimizations if the inputs
+   * to readPort() are compile-time constants. */
+  if (TOTAL_PORTS > 0 && reportPINs[0]) outputPort(0, readPort(0, portConfigInputs[0]), false);
+  if (TOTAL_PORTS > 1 && reportPINs[1]) outputPort(1, readPort(1, portConfigInputs[1]), false);
+  if (TOTAL_PORTS > 2 && reportPINs[2]) outputPort(2, readPort(2, portConfigInputs[2]), false);
+  if (TOTAL_PORTS > 3 && reportPINs[3]) outputPort(3, readPort(3, portConfigInputs[3]), false);
+  if (TOTAL_PORTS > 4 && reportPINs[4]) outputPort(4, readPort(4, portConfigInputs[4]), false);
+  if (TOTAL_PORTS > 5 && reportPINs[5]) outputPort(5, readPort(5, portConfigInputs[5]), false);
+  if (TOTAL_PORTS > 6 && reportPINs[6]) outputPort(6, readPort(6, portConfigInputs[6]), false);
+  if (TOTAL_PORTS > 7 && reportPINs[7]) outputPort(7, readPort(7, portConfigInputs[7]), false);
+  if (TOTAL_PORTS > 8 && reportPINs[8]) outputPort(8, readPort(8, portConfigInputs[8]), false);
+  if (TOTAL_PORTS > 9 && reportPINs[9]) outputPort(9, readPort(9, portConfigInputs[9]), false);
+  if (TOTAL_PORTS > 10 && reportPINs[10]) outputPort(10, readPort(10, portConfigInputs[10]), false);
+  if (TOTAL_PORTS > 11 && reportPINs[11]) outputPort(11, readPort(11, portConfigInputs[11]), false);
+  if (TOTAL_PORTS > 12 && reportPINs[12]) outputPort(12, readPort(12, portConfigInputs[12]), false);
+  if (TOTAL_PORTS > 13 && reportPINs[13]) outputPort(13, readPort(13, portConfigInputs[13]), false);
+  if (TOTAL_PORTS > 14 && reportPINs[14]) outputPort(14, readPort(14, portConfigInputs[14]), false);
+  if (TOTAL_PORTS > 15 && reportPINs[15]) outputPort(15, readPort(15, portConfigInputs[15]), false);
+}
 
 /******************************************************************************
  * @brief  Main function
@@ -573,8 +588,8 @@ void systemResetCallback()
 int main(void)
 {
 	Firmata.setFirmwareVersion(FIRMATA_FIRMWARE_MAJOR_VERSION, FIRMATA_FIRMWARE_MINOR_VERSION);
-//	Firmata.attach(ANALOG_MESSAGE, analogWriteCallback);
-//	Firmata.attach(DIGITAL_MESSAGE, digitalWriteCallback);
+	Firmata.attach(ANALOG_MESSAGE, analogWriteCallback);
+	Firmata.attach(DIGITAL_MESSAGE, digitalWriteCallback);
 	Firmata.attach(REPORT_ANALOG, reportAnalogCallback);
 	Firmata.attach(REPORT_DIGITAL, reportDigitalCallback);
 	Firmata.attach(SET_PIN_MODE, setPinModeCallback);
@@ -595,7 +610,7 @@ int main(void)
 
 		  /* DIGITALREAD - as fast as possible, check for changes and output them to the
 		   * FTDI buffer using Serial.print()  */
-//		  checkDigitalInputs();
+		  checkDigitalInputs();
 
 
 		  /* STREAMREAD - processing incoming messagse as soon as possible, while still
