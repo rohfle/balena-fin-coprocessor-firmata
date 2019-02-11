@@ -102,7 +102,7 @@ SerialClass::SerialClass(){
 };
 
 SerialClass::SerialClass(unsigned int interface, long baudrate){
-
+	// TODO
 };
 
 /**************************************************************************//**

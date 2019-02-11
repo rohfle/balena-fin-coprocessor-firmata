@@ -251,6 +251,7 @@ void FirmataClass::processInput(void)
 {
 	int inputData = FirmataStream->read(); // this is 'int' to handle -1 when no data
   if (inputData != -1) {
+//	  FirmataStream->write(inputData);
     parser.parse(inputData);
   }
 }
@@ -488,7 +489,11 @@ void FirmataClass::setPinMode(byte pin, byte config)
   if (pinConfig[pin] == PIN_MODE_IGNORE)
     return;
 
+  if ((port_pin[pin].state != MODE_PWM)){
+	  resetPWM(pin);
+  };
   pinConfig[pin] = config;
+  port_pin[pin].state = config;
 }
 
 /**

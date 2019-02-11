@@ -6,8 +6,8 @@
  *****************************************************************************/
 
 /* ADC */
-ADC_Init_TypeDef ADCInit;
-ADC_InitSingle_TypeDef ADCSingle;
+ADC_Init_TypeDef ADCInit = ADC_INIT_DEFAULT;
+ADC_InitSingle_TypeDef ADCSingle = ADC_INITSINGLE_DEFAULT;
 ADC_PosSel_TypeDef * ADCNone;
 bool ADCset = false;
 
@@ -18,37 +18,49 @@ IDAC_OutMode_TypeDef * IDACNone;
 /* RTC */
 RTCDRV_TimerID_t id;
 
+/* PWM */
+TIMER_InitCC_TypeDef timerCCInit = TIMER_INITCC_DEFAULT;
+TIMER_Init_TypeDef timerInit = TIMER_INIT_DEFAULT;
+TIMER_INDEX timer_index[TIMER_CHANNELS] = {
+		{PWM_NONE, TIMER_NONE},
+		{PWM_NONE, TIMER_NONE},
+		{PWM_NONE, TIMER_NONE},
+		{PWM_NONE, TIMER_NONE}
+};
+byte TIMER_FREE_CHANNEL = 0;
+byte channel = 0;
+uint32_t duty[TIMER_CHANNELS];
+
 /******************************************************************************
  * @brief  Pin Definitions
  *
  *****************************************************************************/
 
+/* PORT | PIN | ADC | IDAC | MODE | PWM */
+
 /* User Accessible Pins */
 PIN_MAP port_pin[NUM_PINS] = {
-	{gpioPortD, 14, adcPosSelAPORT3XCH6, idacOutputAPORT1YCH9, MODE_NONE},   // P0
-	{gpioPortB, 13, adcPosSelAPORT3YCH29, idacOutputAPORT1YCH29, MODE_NONE}, // P1 (SPI CS)
-	{gpioPortA, 2, adcPosSelAPORT4YCH10, idacOutputAPORT1XCH10, MODE_NONE},  // P2
-	{gpioPortC, 8, adcPosSelAPORT2YCH8,  * IDACNone, MODE_NONE},             // P3 (SPI CLK)
-	{gpioPortA, 3, adcPosSelAPORT3YCH11, idacOutputAPORT1YCH11, MODE_NONE},  // P4
-	{gpioPortC, 6, adcPosSelAPORT1XCH6, * IDACNone, MODE_NONE},              // P5 (SPI MOSI)
-	{gpioPortA, 4, adcPosSelAPORT4YCH12, idacOutputAPORT1XCH12, MODE_NONE},  // P6
-	{gpioPortC, 7, adcPosSelAPORT2XCH7, * IDACNone, MODE_NONE},              // P7 (SPI MISO)
-	{gpioPortA, 5, adcPosSelAPORT3YCH13, idacOutputAPORT1YCH13, MODE_NONE},  // P8
-	{gpioPortA, 1, adcPosSelAPORT3YCH9, idacOutputAPORT1YCH9, MODE_NONE},    // P9
-	{gpioPortB, 11, adcPosSelAPORT3YCH27, idacOutputAPORT1YCH9, MODE_NONE},  // P10
-	{gpioPortA, 0, adcPosSelAPORT3XCH8, idacOutputAPORT1XCH8, MODE_NONE},    // P11
-	{gpioPortF, 6, adcPosSelAPORT2YCH22, * IDACNone, MODE_NONE},             // P12 (Dev Kit LED0)
-	{gpioPortD, 15, adcPosSelAPORT3YCH7, idacOutputAPORT1YCH7, MODE_NONE},   // P13
-	{gpioPortF, 7, adcPosSelAPORT2XCH23, * IDACNone, MODE_NONE},             // P14 (Dev Kit LED1)
-	{gpioPortD, 13, adcPosSelAPORT3YCH5, idacOutputAPORT1YCH5, MODE_NONE},   // P15
-	{gpioPortF, 5, * ADCNone, * IDACNone, MODE_NONE},                        // P16 (PW_ON_3V3)
-	{gpioPortC, 9, * ADCNone, * IDACNone, MODE_NONE},                        // P17 (PW_ON_5V)
-	{gpioPortC, 10, * ADCNone, * IDACNone, MODE_NONE},                       // P18 (I2C SDA)
-	{gpioPortC, 11, * ADCNone, * IDACNone, MODE_NONE}                        // P19 (I2C SCL)
+	{gpioPortD, 14, adcPosSelAPORT3XCH6, idacOutputAPORT1YCH9, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC22, TIMER_ROUTELOC0_CC1LOC_LOC21, TIMER_ROUTELOC0_CC2LOC_LOC20, TIMER_ROUTELOC0_CC3LOC_LOC19},   // P0
+	{gpioPortB, 13, adcPosSelAPORT3YCH29, idacOutputAPORT1YCH29, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC8, TIMER_ROUTELOC0_CC1LOC_LOC7, TIMER_ROUTELOC0_CC2LOC_LOC6, TIMER_ROUTELOC0_CC3LOC_LOC5},     // P1 (SPI CS)
+	{gpioPortA, 2, adcPosSelAPORT4YCH10, idacOutputAPORT1XCH10, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC2},   // P2
+	{gpioPortC, 8, adcPosSelAPORT2YCH8,  * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC13},             // P3 (SPI CLK)
+	{gpioPortA, 3, adcPosSelAPORT3YCH11, idacOutputAPORT1YCH11, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC3},   // P4
+	{gpioPortC, 6, adcPosSelAPORT1XCH6, * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC11},              // P5 (SPI MOSI)
+	{gpioPortA, 4, adcPosSelAPORT4YCH12, idacOutputAPORT1XCH12, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC4},   // P6
+	{gpioPortC, 7, adcPosSelAPORT2XCH7, * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC12},              // P7 (SPI MISO)
+	{gpioPortA, 5, adcPosSelAPORT3YCH13, idacOutputAPORT1YCH13, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC5},   // P8
+	{gpioPortA, 1, adcPosSelAPORT3YCH9, idacOutputAPORT1YCH9, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC1},     // P9
+	{gpioPortB, 11, adcPosSelAPORT3YCH27, idacOutputAPORT1YCH9, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC6},   // P10
+	{gpioPortA, 0, adcPosSelAPORT3XCH8, idacOutputAPORT1XCH8, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC0},     // P11
+	{gpioPortF, 6, adcPosSelAPORT2YCH22, * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC30, TIMER_ROUTELOC0_CC1LOC_LOC29, TIMER_ROUTELOC0_CC2LOC_LOC28, TIMER_ROUTELOC0_CC3LOC_LOC27},             // P12 (Dev Kit LED0)
+	{gpioPortD, 15, adcPosSelAPORT3YCH7, idacOutputAPORT1YCH7, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC23},   // P13
+	{gpioPortF, 7, adcPosSelAPORT2XCH23, * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC31, TIMER_ROUTELOC0_CC1LOC_LOC30, TIMER_ROUTELOC0_CC2LOC_LOC29, TIMER_ROUTELOC0_CC3LOC_LOC28},             // P14 (Dev Kit LED1)
+	{gpioPortD, 13, adcPosSelAPORT3YCH5, idacOutputAPORT1YCH5, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC21},   // P15
+	{gpioPortF, 5, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE},                        					   // P16 (PW_ON_3V3)
+	{gpioPortC, 9, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE},                        					   // P17 (PW_ON_5V)
+	{gpioPortC, 10, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE},                       					   // P18 (I2C SDA)
+	{gpioPortC, 11, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE}                        					   // P19 (I2C SCL)
 };
-
-/* Reserved Pins */
-
 
 /******************************************************************************
  * @brief  Balena Functions
@@ -61,7 +73,12 @@ void balenaInit()
 	initGPIO();
 	initTimer();
 	initADC();
-}
+	initPWM();
+};
+
+void reset(){
+	NVIC_SystemReset();
+};
 
 /******************************************************************************
  * @brief  System Functions
@@ -152,8 +169,6 @@ void initMCU_CLK(void)
   CMU_ClockSelectSet(cmuClock_LFE, cmuSelect_LFXO);
 }
 
-
-
 /******************************************************************************
  * @brief  ADC Functions
  *
@@ -161,9 +176,9 @@ void initMCU_CLK(void)
 
 void initADC(){
 	CMU_ClockEnable(cmuClock_ADC0, true);
-	ADCInit = ADC_INIT_DEFAULT;
-	ADCSingle = ADC_INITSINGLE_DEFAULT;
-	ADCInit.prescale = ADC_PrescaleCalc(adcFreq, 0);
+//	ADCInit = ADC_INIT_DEFAULT;
+//	ADCSingle = ADC_INITSINGLE_DEFAULT;
+	ADCInit.prescale     = ADC_PrescaleCalc(adcFreq, 0);
 	ADCSingle.diff       = false;           // single ended
 	ADCSingle.reference  = adcRef5V;        // internal 2.5V reference
 	ADCSingle.resolution = adcRes12Bit;     // 12-bit resolution
@@ -176,6 +191,105 @@ void setADC(unsigned int pin_no, ADC_TypeDef * adc){
 	ADC_Init(adc, &ADCInit);
 	ADC_InitSingle(adc, &ADCSingle);
 };
+
+/******************************************************************************
+ * @brief  PWM Functions
+ *
+ *****************************************************************************/
+void TIMER1_IRQHandler(void)
+{
+  // Get pending channel flags and clear
+	for(byte i = 0; i < 4; i++) TIMER_IntClear(TIMER1, TIMER_IF_CC0 << i);
+	for(byte i = 0; i < 4; i++) TIMER_CompareBufSet(TIMER1, i, (TIMER_TopGet(TIMER1) * duty[i]) / 100);
+}
+
+void initPWM(){
+	CMU_ClockEnable(cmuClock_TIMER1, true);
+	timerCCInit.mode = timerCCModePWM;
+	TIMER_InitCC(TIMER1, 0, &timerCCInit);
+	TIMER_InitCC(TIMER1, 1, &timerCCInit);
+	TIMER_InitCC(TIMER1, 2, &timerCCInit);
+};
+
+void resetPWM(byte pin){
+	int chan = -1;
+	for(byte i = 0; i < 4; i++) {
+		if(timer_index[i].pin == pin) chan = i;
+	}
+	if(chan == -1) return;
+	timer_index[chan].route = TIMER_NONE;
+	timer_index[chan].pin = PWM_NONE;
+	TIMER1->ROUTELOC0 = RESET;
+	for(byte i = 0; i < 4; i++) {
+		if(timer_index[i].route != TIMER_NONE) TIMER1->ROUTELOC0 |= timer_index[i].route;
+	}
+	TIMER_IntClear(TIMER1, (TIMER_IF_CC0 << chan));
+	TIMER_IntDisable(TIMER1, (TIMER_IF_CC0 << chan));
+}
+
+void incChannel(unsigned int pin_no, byte chan){
+	switch(chan) {
+	   case 0:
+		   timer_index[chan].route = port_pin[pin_no].pwm_0;
+		  break;
+	   case 1:
+		   timer_index[chan].route = port_pin[pin_no].pwm_1;
+		  break;
+	   case 2:
+		   timer_index[chan].route = port_pin[pin_no].pwm_2;
+		  break;
+	   case 3:
+		   timer_index[chan].route = port_pin[pin_no].pwm_3;
+		  break;
+	   default:
+		   timer_index[chan].route = port_pin[pin_no].pwm_0;
+		  break;
+	}
+	timer_index[chan].pin = pin_no;
+};
+
+bool setPWM(unsigned int pin_no, byte duty_cycle){
+	TIMER1->ROUTELOC0 = RESET;
+	uint32_t channel_route = channel;
+	if(port_pin[pin_no].pwm_0 != PWM_NONE) {
+		for(byte i = 0; i < 4; i++) {
+			if(timer_index[i].pin == pin_no) channel_route = i;
+		}
+		duty[channel_route] = duty_cycle;
+
+		incChannel(pin_no, channel_route);
+
+		for(byte i = 0; i < 4; i++) {
+			if(timer_index[i].route != TIMER_NONE) TIMER1->ROUTELOC0 |= timer_index[i].route;
+		}
+	}
+	else return 0;
+
+	// Enable route on current channel
+	TIMER1->ROUTEPEN |= (TIMER_ROUTEPEN_CC0PEN << channel_route);
+
+	// Set top value to overflow once per signal period
+	TIMER_TopSet(TIMER1, CMU_ClockFreqGet(cmuClock_TIMER1) / PWM_FREQ);
+
+	// Set compare value for initial duty cycle
+	TIMER_CompareSet(TIMER1, channel_route, (TIMER_TopGet(TIMER1) * duty[channel_route]) / 100);
+
+	// Initialize and start timer with no prescaling
+	timerInit.prescale = timerPrescale1;
+	TIMER_Init(TIMER1, &timerInit);
+
+	// Safely enable TIMER0 CC0 interrupt
+	TIMER_IntClear(TIMER1, (TIMER_IF_CC0 << channel_route));
+	NVIC_ClearPendingIRQ(TIMER1_IRQn);
+
+	// Interrupt on compare event to set CCVB to update duty cycle on next period
+	TIMER_IntEnable(TIMER1, (TIMER_IF_CC0 << channel));
+
+	NVIC_EnableIRQ(TIMER1_IRQn);
+	if(channel_route == channel) channel = (channel + 1) % 4;
+	return 1;
+};
+
 
 /******************************************************************************
  * @brief  IDAC Functions
@@ -243,7 +357,7 @@ unsigned int digitalRead(unsigned int pin_no){
 };
 
 void digitalWrite(unsigned int pin_no, unsigned int value){
-	GPIO_PinModeSet(port_pin[pin_no].port, port_pin[pin_no].pin , gpioModePushPull, value);
+	GPIO_PinModeSet(port_pin[pin_no].port, port_pin[pin_no].pin, gpioModePushPull, value);
 };
 
 /******************************************************************************
@@ -253,10 +367,11 @@ void digitalWrite(unsigned int pin_no, unsigned int value){
 
 void analogWrite(unsigned int pin_no, byte value){
 	if(port_pin[pin_no].dac != * IDACNone){
-		if(port_pin[pin_no].state == MODE_ANALOG_OUT){
-			// setup IDAC
-		}
-		else port_pin[pin_no].state = MODE_ANALOG_OUT;
+		if(port_pin[pin_no].state == MODE_PWM) setPWM(pin_no, value);
+		else if(port_pin[pin_no].state == MODE_ANALOG_OUT) setIDAC(pin_no, value);
+	}
+	else {
+		if(port_pin[pin_no].state == MODE_PWM) setPWM(pin_no, value);
 	}
 };
 
@@ -264,9 +379,9 @@ uint32_t analogRead(unsigned int pin_no){
 	if(port_pin[pin_no].state != MODE_ANALOG_IN){
 		setADC(pin_no, ADC0);
 	}
-	 ADC_Start(ADC0, adcStartSingle);
-	 while(!(ADC0->STATUS & _ADC_STATUS_SINGLEDV_MASK));
-	return  ADC_DataSingleGet(ADC0);
+	ADC_Start(ADC0, adcStartSingle);
+	while(!(ADC0->STATUS & _ADC_STATUS_SINGLEDV_MASK));
+	return ADC_DataSingleGet(ADC0);
 };
 
 /******************************************************************************
@@ -287,6 +402,3 @@ uint32_t millis(){
 void delay(unsigned int n){
 	USTIMER_Delay(n * 1000);
 };
-
-
-
