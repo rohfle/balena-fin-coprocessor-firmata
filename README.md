@@ -1,6 +1,6 @@
 # BalenaFin Co-Processor Firmata (beta)
 
-This is an implementation of the [Firmata](https://github.com/firmata/protocol) protocol for SiliconLabs BGM111. It is compatible with standard Firmata 2.5.8. Please be aware this **project is in beta release** and is subject to change frequently.
+This is an implementation of the [Firmata](https://github.com/firmata/protocol) protocol for SiliconLabs BGM111. It is compatible with standard Firmata 2.5.8. Please be aware this **project is in beta release** and is subject to change frequently up until release.
 
 ### Installation
 
