@@ -6,7 +6,7 @@ This is an implementation of the [Firmata](https://github.com/firmata/protocol) 
 
 #### Dockerfile
 
-The easiest way to install the Firmata application onto your board is to run the [balena application]() provided. This targets the latest verision of the Firmata application. This balena application will run and install [OpenOCD](http://openocd.org/) on your Fin in order to provision the Coprocessor with both a bootloader and the Firmata application.
+The easiest way to install the Firmata application onto your board is to run the [balena application](https://github.com/balena-io-playground/balena-fin-firmata-flash) provided. This targets the latest verision of the Firmata application. This balena application will run and install [OpenOCD](http://openocd.org/) on your Fin in order to provision the Coprocessor with both a bootloader and the Firmata application.
 
 #### Build & Manually Flash
 
