@@ -1,12 +1,12 @@
-# BalenaFin Co-Processor Firmata (beta)
+# BalenaFin Co-Processor Firmata [![build](https://img.shields.io/badge/release-beta-brightgreen.svg)]()
 
-This is an implementation of the [Firmata](https://github.com/firmata/protocol) protocol for SiliconLabs BGM111. It is compatible with standard Firmata 2.5.8. Please be aware this **project is in beta release** and is subject to change frequently.
+This is an implementation of the [Firmata](https://github.com/firmata/protocol) protocol for SiliconLabs BGM111. It is compatible with standard Firmata 2.5.8. Please be aware this **project is in beta release** and is subject to change frequently up until release.
 
 ### Installation
 
 #### Dockerfile
 
-The easiest way to install the Firmata application onto your board is to run the [balena application]() provided. This targets the latest verision of the Firmata application. This balena application will run and install [OpenOCD](http://openocd.org/) on your Fin in order to provision the Coprocessor with both a bootloader and the Firmata application.
+The easiest way to install the Firmata application onto your board is to run the [balena application](https://github.com/balena-io-playground/balena-fin-firmata-flash) provided. This targets the latest verision of the Firmata application. This balena application will run and install [OpenOCD](http://openocd.org/) on your Fin in order to provision the Coprocessor with both a bootloader and the Firmata application.
 
 #### Build & Manually Flash
 
