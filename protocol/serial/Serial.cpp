@@ -1,6 +1,5 @@
 #include "Serial.h"
 
-#define BUFFERSIZE          256
 
 struct circularBuffer
 {
@@ -15,7 +14,7 @@ volatile circularBuffer rxBuf;
 volatile circularBuffer txBuf = { {0}, 0, 0, 0, false };
 
 
-/**************************************************************************//**
+/******************************************************************************
  * @brief UART0 RX IRQ Handler
  *
  * RX IRQ
@@ -41,7 +40,7 @@ void USART0_RX_IRQHandler(void)
   }
 }
 
-/**************************************************************************//**
+/******************************************************************************
  * @brief UART0 TX IRQ Handler
  *
  * TX IRQ
@@ -69,10 +68,10 @@ void USART0_TX_IRQHandler(void)
   }
 }
 
-/**************************************************************************//**
+/******************************************************************************
  * @brief SerialClass Constructor
  *
- *
+ * Sets up Serial Object with default parameters
  *
  *****************************************************************************/
 
@@ -85,30 +84,51 @@ SerialClass::SerialClass(){
 	CMU_ClockEnable(cmuClock_GPIO, true);
 
 	/* Configure GPIO pins */
-	GPIO_PinModeSet(gpioPortA, 1, gpioModeInput, 0);
-	GPIO_PinModeSet(gpioPortA, 0, gpioModePushPull, 1);
+	GPIO_PinModeSet(CM3_PIN_RX, gpioModeInput, 0);
+	GPIO_PinModeSet(CM3_PIN_TX, gpioModePushPull, 1);
 
 	/* Prepare struct for initializing UART in asynchronous mode*/
 	uartInit.enable       = usartDisable;   /* Don't enable UART upon intialization */
 	uartInit.refFreq      = 0;              /* Provide information on reference frequency. When set to 0, the reference frequency is */
-	uartInit.baudrate     = 115200;         /* Baud rate */
-	uartInit.oversampling = usartOVS16;     /* Oversampling. Range is 4x, 6x, 8x or 16x */
-	uartInit.databits     = usartDatabits8; /* Number of data bits. Range is 4 to 10 */
+	uartInit.baudrate     = 57600;          /* Firmata Standard Baud rate*/
+	uartInit.oversampling = usartOVS16;     /* 16x Oversampling */
+	uartInit.databits     = usartDatabits8; /* Number of data bits */
 	uartInit.parity       = usartNoParity;  /* Parity mode */
-	uartInit.stopbits     = usartStopbits1; /* Number of stop bits. Range is 0 to 2 */
+	uartInit.stopbits     = usartStopbits1; /* Number of stop bits */
 	uartInit.mvdis        = false;          /* Disable majority voting */
 	uartInit.prsRxEnable  = false;          /* Enable USART Rx via Peripheral Reflex System */
 	uartInit.prsRxCh      = usartPrsRxCh0;  /* Select PRS channel if enabled */
 };
 
-SerialClass::SerialClass(unsigned int interface, long baudrate){
-	// TODO
+SerialClass::SerialClass(long baudrate){
+	/* Enable clock for HF peripherals */
+	CMU_ClockEnable(cmuClock_HFPER, true);
+
+	/* Enable clock for USART module */
+	CMU_ClockEnable(cmuClock_USART0, true);
+	CMU_ClockEnable(cmuClock_GPIO, true);
+
+	/* Configure GPIO pins */
+	GPIO_PinModeSet(CM3_PIN_RX, gpioModeInput, 0);
+	GPIO_PinModeSet(CM3_PIN_TX, gpioModePushPull, 1);
+
+	/* Prepare struct for initializing UART in asynchronous mode*/
+	uartInit.enable       = usartDisable;   /* Don't enable UART upon intialization */
+	uartInit.refFreq      = 0;              /* Provide information on reference frequency. When set to 0, the reference frequency is */
+	uartInit.baudrate     = baudrate;          /* Firmata Standard Baud rate*/
+	uartInit.oversampling = usartOVS16;     /* 16x Oversampling */
+	uartInit.databits     = usartDatabits8; /* Number of data bits */
+	uartInit.parity       = usartNoParity;  /* Parity mode */
+	uartInit.stopbits     = usartStopbits1; /* Number of stop bits */
+	uartInit.mvdis        = false;          /* Disable majority voting */
+	uartInit.prsRxEnable  = false;          /* Enable USART Rx via Peripheral Reflex System */
+	uartInit.prsRxCh      = usartPrsRxCh0;  /* Select PRS channel if enabled */
 };
 
-/**************************************************************************//**
- * @brief SerialClass Begin
+/******************************************************************************
+ * @brief SerialClass Begin/End
  *
- * Enables UART and UART Interrupts
+ * Enables/Disables UART interface and interrupts
  *
  *****************************************************************************/
 
@@ -127,15 +147,24 @@ void SerialClass::begin(long baudrate){
 
 	/* Enable I/O pins at UART1 location #2 */
 	USART0->ROUTEPEN |= USART_ROUTEPEN_TXPEN | USART_ROUTEPEN_RXPEN;
-	USART0->ROUTELOC0 = USART_ROUTELOC0_RXLOC_LOC0 | USART_ROUTELOC0_TXLOC_LOC0;
+	USART0->ROUTELOC0 = CM3_LOC;
+
 	/* Enable UART */
 	USART_Enable(USART0, usartEnable);
 };
 
-/**************************************************************************//**
- * @brief SerialClass Begin
+void SerialClass::end(){
+    USART_IntDisable(USART0, USART_IEN_TXBL);
+	USART_IntDisable(USART0, USART_IEN_RXDATAV);
+    USART_Enable(USART0, usartDisable);
+	USART0->ROUTEPEN = RESET;
+	USART0->ROUTELOC0 = RESET;
+};
+
+/******************************************************************************
+ * @brief SerialClass Write
  *
- * Enables UART and UART Interrupts
+ * UART Write Function and Overloads
  *
  *****************************************************************************/
 
@@ -161,8 +190,6 @@ void SerialClass::write(uint8_t ch){
 void SerialClass::write(uint8_t * dataPtr, uint32_t dataLen)
 {
   uint32_t i = 0;
-
-
 
   /* Check if buffer is large enough for data */
   if (dataLen > BUFFERSIZE)
@@ -193,10 +220,10 @@ void SerialClass::write(uint8_t * dataPtr, uint32_t dataLen)
   USART_IntEnable(USART0, USART_IEN_TXBL);
 }
 
-/**************************************************************************//**
- * @brief SerialClass Begin
+/******************************************************************************
+ * @brief SerialClass Read
  *
- * Enables UART and UART Interrupts
+ * UART read function and overloads
  *
  *****************************************************************************/
 
@@ -249,6 +276,13 @@ uint32_t SerialClass::readBytes(uint8_t * dataPtr, uint32_t dataLen)
   return i;
 }
 
+/******************************************************************************
+ * @brief SerialClass Available
+ *
+ * Checks UART TX/RX Buffer for data
+ *
+ *****************************************************************************/
+
 int SerialClass::available(void){
 	if(rxBuf.pendingBytes == 0) return -1;
 	else return rxBuf.pendingBytes;
@@ -260,11 +294,16 @@ int SerialClass::availableForWrite(void){
 	else return txBuf.pendingBytes;
 };
 
+/******************************************************************************
+ * @brief SerialClass Status
+ *
+ * Provides returns for a selection of settings on the UART interface
+ *
+ *****************************************************************************/
+
 int SerialClass::baudRate(){
 	return uartInit.baudrate;
 };
 
-void SerialClass::end(){
-//	UARTDRV_DeInit(uartHandle);
-};
+
 

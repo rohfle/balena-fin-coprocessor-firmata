@@ -26,8 +26,8 @@ CPP_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
-app/bluetooth/common/util \
 . \
+app/bluetooth/common/util \
 hardware/kit/common/bsp \
 hardware/kit/common/drivers \
 platform/Device/SiliconLabs/EFR32BG1B/Source/GCC \

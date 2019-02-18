@@ -31,35 +31,42 @@ byte TIMER_FREE_CHANNEL = 0;
 byte channel = 0;
 uint32_t duty[TIMER_CHANNELS];
 
+/* I2C */
+// Using default settings
+I2C_Init_TypeDef i2cInit = I2C_INIT_DEFAULT;
+// Transmission flags
+volatile bool i2c_rxInProgress;
+volatile bool i2c_startTx;
+uint8_t i2c_rxBuffer[I2C_RXBUFFER_SIZE];
+uint8_t i2c_rxBufferIndex;
+
 /******************************************************************************
  * @brief  Pin Definitions
  *
  *****************************************************************************/
 
 /* PORT | PIN | ADC | IDAC | MODE | PWM */
-
-/* User Accessible Pins */
 PIN_MAP port_pin[NUM_PINS] = {
 	{gpioPortD, 14, adcPosSelAPORT3XCH6, idacOutputAPORT1YCH9, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC22, TIMER_ROUTELOC0_CC1LOC_LOC21, TIMER_ROUTELOC0_CC2LOC_LOC20, TIMER_ROUTELOC0_CC3LOC_LOC19},   // P0
 	{gpioPortB, 13, adcPosSelAPORT3YCH29, idacOutputAPORT1YCH29, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC8, TIMER_ROUTELOC0_CC1LOC_LOC7, TIMER_ROUTELOC0_CC2LOC_LOC6, TIMER_ROUTELOC0_CC3LOC_LOC5},     // P1 (SPI CS)
-	{gpioPortA, 2, adcPosSelAPORT4YCH10, idacOutputAPORT1XCH10, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC2},   // P2
-	{gpioPortC, 8, adcPosSelAPORT2YCH8,  * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC13},             // P3 (SPI CLK)
-	{gpioPortA, 3, adcPosSelAPORT3YCH11, idacOutputAPORT1YCH11, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC3},   // P4
-	{gpioPortC, 6, adcPosSelAPORT1XCH6, * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC11},              // P5 (SPI MOSI)
-	{gpioPortA, 4, adcPosSelAPORT4YCH12, idacOutputAPORT1XCH12, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC4},   // P6
-	{gpioPortC, 7, adcPosSelAPORT2XCH7, * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC12},              // P7 (SPI MISO)
-	{gpioPortA, 5, adcPosSelAPORT3YCH13, idacOutputAPORT1YCH13, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC5},   // P8
-	{gpioPortA, 1, adcPosSelAPORT3YCH9, idacOutputAPORT1YCH9, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC1},     // P9
-	{gpioPortB, 11, adcPosSelAPORT3YCH27, idacOutputAPORT1YCH9, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC6},   // P10
-	{gpioPortA, 0, adcPosSelAPORT3XCH8, idacOutputAPORT1XCH8, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC0},     // P11
+	{gpioPortA, 2, adcPosSelAPORT4YCH10, idacOutputAPORT1XCH10, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC2, TIMER_ROUTELOC0_CC1LOC_LOC1, TIMER_ROUTELOC0_CC2LOC_LOC0, TIMER_ROUTELOC0_CC3LOC_LOC31},     // P2
+	{gpioPortC, 8, adcPosSelAPORT2YCH8,  * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC13, TIMER_ROUTELOC0_CC1LOC_LOC12, TIMER_ROUTELOC0_CC2LOC_LOC11, TIMER_ROUTELOC0_CC3LOC_LOC10},             // P3 (SPI CLK)
+	{gpioPortA, 3, adcPosSelAPORT3YCH11, idacOutputAPORT1YCH11, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC3, TIMER_ROUTELOC0_CC1LOC_LOC2, TIMER_ROUTELOC0_CC2LOC_LOC1, TIMER_ROUTELOC0_CC3LOC_LOC0},      // P4
+	{gpioPortC, 6, adcPosSelAPORT1XCH6, * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC11, TIMER_ROUTELOC0_CC1LOC_LOC10, TIMER_ROUTELOC0_CC2LOC_LOC9, TIMER_ROUTELOC0_CC3LOC_LOC8},                // P5 (SPI MOSI)
+	{gpioPortA, 4, adcPosSelAPORT4YCH12, idacOutputAPORT1XCH12, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC4, TIMER_ROUTELOC0_CC1LOC_LOC3, TIMER_ROUTELOC0_CC2LOC_LOC2, TIMER_ROUTELOC0_CC3LOC_LOC1},      // P6
+	{gpioPortC, 7, adcPosSelAPORT2XCH7, * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC12, TIMER_ROUTELOC0_CC1LOC_LOC11, TIMER_ROUTELOC0_CC2LOC_LOC10, TIMER_ROUTELOC0_CC3LOC_LOC9},               // P7 (SPI MISO)
+	{gpioPortA, 5, adcPosSelAPORT3YCH13, idacOutputAPORT1YCH13, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC5, TIMER_ROUTELOC0_CC1LOC_LOC4, TIMER_ROUTELOC0_CC2LOC_LOC3, TIMER_ROUTELOC0_CC3LOC_LOC2},      // P8
+	{gpioPortA, 1, adcPosSelAPORT3YCH9, idacOutputAPORT1YCH9, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC1, TIMER_ROUTELOC0_CC1LOC_LOC0, TIMER_ROUTELOC0_CC2LOC_LOC31, TIMER_ROUTELOC0_CC3LOC_LOC30},      // P9
+	{gpioPortB, 11, adcPosSelAPORT3YCH27, idacOutputAPORT1YCH9, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC6, TIMER_ROUTELOC0_CC1LOC_LOC5, TIMER_ROUTELOC0_CC2LOC_LOC4, TIMER_ROUTELOC0_CC3LOC_LOC3},      // P10
+	{gpioPortA, 0, adcPosSelAPORT3XCH8, idacOutputAPORT1XCH8, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC0, TIMER_ROUTELOC0_CC1LOC_LOC31, TIMER_ROUTELOC0_CC2LOC_LOC30, TIMER_ROUTELOC0_CC3LOC_LOC29},     // P11
 	{gpioPortF, 6, adcPosSelAPORT2YCH22, * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC30, TIMER_ROUTELOC0_CC1LOC_LOC29, TIMER_ROUTELOC0_CC2LOC_LOC28, TIMER_ROUTELOC0_CC3LOC_LOC27},             // P12 (Dev Kit LED0)
-	{gpioPortD, 15, adcPosSelAPORT3YCH7, idacOutputAPORT1YCH7, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC23},   // P13
+	{gpioPortD, 15, adcPosSelAPORT3YCH7, idacOutputAPORT1YCH7, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC23, TIMER_ROUTELOC0_CC1LOC_LOC22, TIMER_ROUTELOC0_CC2LOC_LOC21, TIMER_ROUTELOC0_CC3LOC_LOC20},   // P13
 	{gpioPortF, 7, adcPosSelAPORT2XCH23, * IDACNone, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC31, TIMER_ROUTELOC0_CC1LOC_LOC30, TIMER_ROUTELOC0_CC2LOC_LOC29, TIMER_ROUTELOC0_CC3LOC_LOC28},             // P14 (Dev Kit LED1)
-	{gpioPortD, 13, adcPosSelAPORT3YCH5, idacOutputAPORT1YCH5, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC21},   // P15
-	{gpioPortF, 5, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE},                        					   // P16 (PW_ON_3V3)
-	{gpioPortC, 9, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE},                        					   // P17 (PW_ON_5V)
-	{gpioPortC, 10, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE},                       					   // P18 (I2C SDA)
-	{gpioPortC, 11, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE}                        					   // P19 (I2C SCL)
+	{gpioPortD, 13, adcPosSelAPORT3YCH5, idacOutputAPORT1YCH5, MODE_NONE, TIMER_ROUTELOC0_CC0LOC_LOC21, TIMER_ROUTELOC0_CC1LOC_LOC20, TIMER_ROUTELOC0_CC2LOC_LOC19, TIMER_ROUTELOC0_CC3LOC_LOC18},   // P15
+	{gpioPortF, 5, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE},                        					                                                                                             // P16 (PW_ON_3V3)
+	{gpioPortC, 9, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE},                        					                                                                                             // P17 (PW_ON_5V)
+	{gpioPortC, 10, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE},                       					                                                                                             // P18 (I2C SDA)
+	{gpioPortC, 11, * ADCNone, * IDACNone, MODE_NONE, PWM_NONE}                        					                                                                                             // P19 (I2C SCL)
 };
 
 /******************************************************************************
@@ -74,6 +81,7 @@ void balenaInit()
 	initTimer();
 	initADC();
 	initPWM();
+	initI2C();
 };
 
 void reset(){
@@ -176,11 +184,10 @@ void initMCU_CLK(void)
 
 void initADC(){
 	CMU_ClockEnable(cmuClock_ADC0, true);
-//	ADCInit = ADC_INIT_DEFAULT;
-//	ADCSingle = ADC_INITSINGLE_DEFAULT;
+
 	ADCInit.prescale     = ADC_PrescaleCalc(adcFreq, 0);
 	ADCSingle.diff       = false;           // single ended
-	ADCSingle.reference  = adcRef5V;        // internal 2.5V reference
+	ADCSingle.reference  = adcRef2V5;       // internal 2.5V reference
 	ADCSingle.resolution = adcRes12Bit;     // 12-bit resolution
 	ADCSingle.acqTime    = adcAcqTime4;     // set acquisition time to meet minimum requirement
 };
@@ -328,8 +335,8 @@ void deviceMode(unsigned int pin, unsigned int mode){
 	GPIO_PinModeSet(BSP_VCOM_ENABLE_PORT, BSP_VCOM_ENABLE_PIN, gpioModePushPull, 1);
 };
 
-void pinMode(unsigned int pin_no, unsigned int value){
-	GPIO_PinModeSet(port_pin[pin_no].port, port_pin[pin_no].pin , gpioModePushPull, value);
+void pinMode(unsigned int pin_no, GPIO_Mode_TypeDef mode,unsigned int direction){
+	GPIO_PinModeSet(port_pin[pin_no].port, port_pin[pin_no].pin, mode, direction);
 };
 
 bool pinExists(unsigned int pin_no){
@@ -402,3 +409,42 @@ uint32_t millis(){
 void delay(unsigned int n){
 	USTIMER_Delay(n * 1000);
 };
+
+/******************************************************************************
+ * @brief  I2C Functions
+ * // TODO
+ *
+ *****************************************************************************/
+
+void initI2C(void)
+{
+	CMU_ClockEnable(cmuClock_I2C0, true);
+
+	// Use ~400khz SCK
+	i2cInit.freq = I2C_FREQ_FAST_MAX;
+
+	// Using PC10 (SDA) and PC11 (SCL)
+	GPIO_PinModeSet(gpioPortC, 10, gpioModeWiredAndPullUpFilter, 1);
+	GPIO_PinModeSet(gpioPortC, 11, gpioModeWiredAndPullUpFilter, 1);
+
+	// Enable pins at location 15 as specified in datasheet
+	I2C0->ROUTEPEN = I2C_ROUTEPEN_SDAPEN | I2C_ROUTEPEN_SCLPEN;
+	I2C0->ROUTELOC0 = (I2C0->ROUTELOC0 & (~_I2C_ROUTELOC0_SDALOC_MASK)) | I2C_ROUTELOC0_SDALOC_LOC15;
+	I2C0->ROUTELOC0 = (I2C0->ROUTELOC0 & (~_I2C_ROUTELOC0_SCLLOC_MASK)) | I2C_ROUTELOC0_SCLLOC_LOC15;
+
+	// Initializing the I2C
+	I2C_Init(I2C0, &i2cInit);
+
+	// Setting the status flags and index
+	i2c_rxInProgress = false;
+	i2c_startTx = false;
+	i2c_rxBufferIndex = 0;
+}
+
+// TODO
+
+/******************************************************************************
+ * @brief  SPI Functions
+ * // TODO
+ *
+ *****************************************************************************/

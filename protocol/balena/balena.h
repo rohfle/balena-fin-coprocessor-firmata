@@ -11,6 +11,7 @@
 #include "em_idac.h"
 #include "em_chip.h"
 #include "em_timer.h"
+#include "em_i2c.h"
 #include "ble-configuration.h"
 #include "board_features.h"
 #include "hal-config.h"
@@ -53,7 +54,9 @@ extern "C" {
 #define MODE_ANALOG_OUT	 12
 
 /* balenaFin Digital Pin Modes */
-#define INPUT_PULLUP gpioModeInputPull
+#define GPIO_INPUT_PULLUP gpioModeInputPull
+#define GPIO_INPUT        gpioModeInput
+#define GPIO_OUTPUT       gpioModePushPull
 #define PWM_NONE 0x11111111UL
 #define RESET 0x00000000UL
 
@@ -62,6 +65,12 @@ extern "C" {
 #define PWM_FREQ 1000
 #define TIMER_CHANNELS 4
 #define TIMER_NONE 0x11111111UL
+
+/* I2C */
+#define CORE_FREQUENCY  14000000
+#define RTC_MIN_TIMEOUT 32000
+#define I2C_RXBUFFER_SIZE 10
+
 typedef unsigned char byte;
 
 /* Pin Struct */
@@ -96,7 +105,7 @@ void initPWM();
 /* Arduino Functions */
 
 void delay(unsigned int n); // delay for n milliseconds
-void pinMode(unsigned int pin_no, unsigned int mode);
+void pinMode(unsigned int pin_no, GPIO_Mode_TypeDef mode,unsigned int direction);
 uint32_t millis();
 
 void digitalWrite(unsigned int pin_no, unsigned int value);
@@ -119,13 +128,11 @@ bool setPWM(unsigned int pin_no, byte duty_cycle);
 void deviceMode(unsigned int pin_no, unsigned int mode);
 
 /* I2C Methods */
-
-// In future release
+void initI2C(void);
+// TODO
 
 /* SPI Methods */
-
-// In future release
-
+// TODO
 
 #ifdef __cplusplus
 }

@@ -42,8 +42,8 @@ typedef unsigned char byte;
 #define SYSEX_SAMPLING_INTERVAL 0x7A // same as SAMPLING_INTERVAL
 
 // pin modes
-#define INPUT                 0x00 // defined in Arduino.h
-#define OUTPUT                0x01 // defined in Arduino.h
+#define INPUT                   0x00 // defined in Arduino.h
+#define OUTPUT                  0x01 // defined in Arduino.h
 // DEPRECATED as of Firmata v2.5
 #define ANALOG                  0x02 // same as PIN_MODE_ANALOG
 #define PWM                     0x03 // same as PIN_MODE_PWM

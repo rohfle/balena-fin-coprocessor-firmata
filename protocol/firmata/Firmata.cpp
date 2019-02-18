@@ -251,7 +251,6 @@ void FirmataClass::processInput(void)
 {
 	int inputData = FirmataStream->read(); // this is 'int' to handle -1 when no data
   if (inputData != -1) {
-//	  FirmataStream->write(inputData);
     parser.parse(inputData);
   }
 }
@@ -550,13 +549,9 @@ void FirmataClass::strobeBlinkPin(byte pin, int count, int onInterval, int offIn
 {
   byte i;
   for (i = 0; i < count; i++) {
-
     delay(offInterval);
-
     digitalWrite(pin, HIGH);
-
     delay(onInterval);
-
     digitalWrite(pin, LOW);
   }
 }
