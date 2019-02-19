@@ -373,6 +373,8 @@ void digitalWrite(unsigned int pin_no, unsigned int value){
  *****************************************************************************/
 
 void analogWrite(unsigned int pin_no, byte value){
+	// Handles converting from Arduino-style analogWrite to percentage based duty cycle
+	value = map(value, 0, 255, 0, 100);
 	if(port_pin[pin_no].dac != * IDACNone){
 		if(port_pin[pin_no].state == MODE_PWM) setPWM(pin_no, value);
 		else if(port_pin[pin_no].state == MODE_ANALOG_OUT) setIDAC(pin_no, value);
@@ -448,3 +450,17 @@ void initI2C(void)
  * // TODO
  *
  *****************************************************************************/
+
+// TODO
+
+/******************************************************************************
+ * @brief  Maths Functions
+ * Maths functions for Arduino, etc.
+ *
+ *****************************************************************************/
+
+// Maps value to a range, used in analogWrite
+long map(long x, long in_min, long in_max, long out_min, long out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}

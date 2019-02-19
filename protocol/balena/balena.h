@@ -118,21 +118,24 @@ uint32_t analogRead(unsigned int pin_no);
 extern PIN_MAP port_pin[NUM_PINS];
 void reset();
 
-/* Analog Methods */
+/* Analog Functions */
 void setADC(unsigned int pin_no, ADC_TypeDef * adc);
 void setIDAC(unsigned int pin_no, IDAC_TypeDef * dac);
 void resetPWM(byte pin);
 bool setPWM(unsigned int pin_no, byte duty_cycle);
 
-/* GPIO Methods */
+/* GPIO Functions */
 void deviceMode(unsigned int pin_no, unsigned int mode);
 
-/* I2C Methods */
+/* I2C Functions */
 void initI2C(void);
 // TODO
 
-/* SPI Methods */
+/* SPI Functions */
 // TODO
+
+/* Math Functions */
+long map(long x, long in_min, long in_max, long out_min, long out_max);
 
 #ifdef __cplusplus
 }
