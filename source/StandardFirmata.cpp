@@ -2,6 +2,8 @@
 #include "Firmata.h"
 #include "Serial.h"
 
+#include "powersave.h"
+
 SerialClass Serial;
 
 #define BUFFERSIZE          256
@@ -341,6 +343,19 @@ void sysexCallback(byte command, byte argc, byte *argv)
       Firmata.write(END_SYSEX);
       break;
 
+#define POWERSAVE 0x0F
+
+    case POWERSAVE:
+      if (argc == 3) {
+        uint8_t shutdown_secs = argv[0];
+        uint16_t startup_mins = (argv[2] << 7) | argv[1];
+        powersaveSet(shutdown_secs, startup_mins);
+        Firmata.write(START_SYSEX);
+        Firmata.write(POWERSAVE);
+        Firmata.write(END_SYSEX);
+      }
+      break;
+
     case SERIAL_MESSAGE:
 #ifdef FIRMATA_SERIAL_FEATURE
       serialFeature.handleSysex(command, argc, argv);
@@ -424,6 +439,7 @@ void checkDigitalInputs(void)
   if (TOTAL_PORTS > 15 && reportPINs[15]) outputPort(15, readPort(15, portConfigInputs[15]), false);
 }
 
+
 /******************************************************************************
  * @brief  Main function
  *
@@ -441,10 +457,16 @@ int main(void)
 	Firmata.attach(SYSTEM_RESET, systemResetCallback);
 
 	balenaInit();
+  powersaveInit();
 
 	Serial.begin(57600);
 
 	Firmata.begin(Serial);
+
+  // set pullup on RX
+  GPIO_PinModeSet(gpioPortF, 2, gpioModeInputPull, 1);
+  // set pullup on TX
+  GPIO_PinModeSet(gpioPortF, 3, gpioModeWiredAndPullUp, 1);
 
 	while(1){
 		 byte pin, analogPin;
@@ -458,6 +480,8 @@ int main(void)
 		  while (Firmata.available() > 0) {
 		    Firmata.processInput();
 		  }
+
+      powersaveRun();
 
 		  // TODO - ensure that Stream buffer doesn't go over 60 bytes
 		  currentMillis = millis();
@@ -483,6 +507,3 @@ int main(void)
 		  }
 	}
 }
-
-
-

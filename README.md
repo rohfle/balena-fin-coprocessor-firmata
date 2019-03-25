@@ -22,7 +22,7 @@ If using a JLink programmer to externally flash:
 
  - [JLink tools](https://www.segger.com/jlink-software.html)
 
-*Make sure this is in your `$PATH`
+*Make sure this is in your `$PATH`*
 
 #### Building/Flashing
 
